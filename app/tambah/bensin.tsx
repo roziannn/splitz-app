@@ -4,8 +4,8 @@ import { Alert, ScrollView, Text, View } from 'react-native';
 import { DateField } from '../../components/DateField';
 import { Button, Card, Chip, Field } from '../../components/ui';
 import { localIso } from '../../lib/dates';
-import { FUEL_TYPES, fmtLiters, parseDec, previousFill, STATIONS } from '../../lib/fuel';
-import { parseNum, rupiah, uid } from '../../lib/format';
+import { FUEL_TYPES, fmtLiters, previousFill, STATIONS } from '../../lib/fuel';
+import { parseNum, uid } from '../../lib/format';
 import { useStore } from '../../lib/store';
 import { C } from '../../lib/theme';
 import { Receipt } from '../../lib/types';
@@ -21,35 +21,18 @@ export default function Bensin() {
   const [station, setStation] = useState(existing?.merchant ?? '');
   const [type, setType] = useState(f?.type ?? '');
   const [price, setPrice] = useState(f ? String(f.pricePerLiter) : '');
-  const [liters, setLiters] = useState(f ? fmtLiters(f.liters) : '');
   const [total, setTotal] = useState(existing ? String(existing.total) : '');
   const [odo, setOdo] = useState(f?.odometer ? String(f.odometer) : '');
 
-  // Harga/liter dan liter menentukan total; mengubah total menghitung ulang liter.
-  const onPrice = (t: string) => {
-    setPrice(t);
-    const p = parseNum(t), l = parseDec(liters);
-    if (p > 0 && l > 0) setTotal(String(Math.round(p * l)));
-  };
-  const onLiters = (t: string) => {
-    setLiters(t);
-    const p = parseNum(price), l = parseDec(t);
-    if (p > 0 && l > 0) setTotal(String(Math.round(p * l)));
-  };
-  const onTotal = (t: string) => {
-    setTotal(t);
-    const p = parseNum(price), tot = parseNum(t);
-    if (p > 0 && tot > 0) setLiters(fmtLiters(tot / p));
-  };
-
-  const totalNum = Math.round(parseNum(total)); // rupiah dan km: titik/koma = pemisah ribuan
-  const litersNum = parseDec(liters);
-  const odoNum = Math.round(parseNum(odo));
+  const priceNum = parseNum(price);
+  const totalNum = parseNum(total); // rupiah dan km: titik/koma = pemisah ribuan
+  const litersNum = priceNum > 0 && totalNum > 0 ? Math.round((totalNum / priceNum) * 100) / 100 : 0; // otomatis, tidak diketik
+  const odoNum = parseNum(odo);
   const prev = odoNum > 0 ? previousFill(receipts, date, existing?.id) : undefined;
   const distance = prev?.fuel?.odometer && odoNum > prev.fuel.odometer ? odoNum - prev.fuel.odometer : 0;
 
   const save = () => {
-    if (totalNum <= 0) return Alert.alert('Total belum diisi', 'Isi total bayar, atau harga per liter dan jumlah liter.');
+    if (totalNum <= 0) return Alert.alert('Total belum diisi', 'Isi total bayar (nominal yang dibayar).');
     const name = type.trim() || 'BBM';
     const r: Receipt = {
       id: existing?.id ?? uid(),
@@ -64,7 +47,7 @@ export default function Bensin() {
       createdAt: existing?.createdAt ?? Date.now(),
       image: existing?.image,
       source: 'bensin',
-      fuel: { type: name, liters: litersNum, pricePerLiter: parseNum(price), ...(odoNum > 0 ? { odometer: odoNum } : {}) },
+      fuel: { type: name, liters: litersNum, pricePerLiter: priceNum, ...(odoNum > 0 ? { odometer: odoNum } : {}) },
     };
     upsert(r);
     router.back();
@@ -91,14 +74,19 @@ export default function Bensin() {
         </View>
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <View style={{ flex: 1 }}>
-            <Field label="Harga per liter (Rp)" keyboardType="numeric" value={price} onChangeText={onPrice} placeholder="10000" />
+            <Field label="Harga per liter (Rp)" keyboardType="numeric" value={price} onChangeText={setPrice} placeholder="10000" />
           </View>
           <View style={{ flex: 1 }}>
-            <Field label="Liter" keyboardType="decimal-pad" value={liters} onChangeText={onLiters} placeholder="5,2" />
+            <Field label="Total bayar (Rp)" keyboardType="numeric" value={total} onChangeText={setTotal} placeholder="50000" />
           </View>
         </View>
-        <Field label="Total bayar (Rp)" keyboardType="numeric" value={total} onChangeText={onTotal} placeholder="50000" />
-        <Text style={{ fontSize: 22, fontWeight: '800', color: C.primary }}>{rupiah(totalNum)}</Text>
+        <Field
+          label="Liter (otomatis)"
+          value={litersNum > 0 ? `${fmtLiters(litersNum)} L` : ''}
+          editable={false}
+          placeholder="Terisi dari total ÷ harga per liter"
+          style={{ backgroundColor: C.bg, color: C.muted }}
+        />
       </Card>
 
       <Card>
