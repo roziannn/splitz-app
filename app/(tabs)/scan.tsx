@@ -45,9 +45,9 @@ export default function Scan() {
   return (
     <ScrollView contentContainerStyle={{ padding: 16 }}>
       <Card>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: C.text }}>Scan struk dengan AI</Text>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: C.text }}>Scan struk</Text>
         <Text style={{ color: C.muted, marginTop: 4 }}>
-          Foto struk belanja, AI akan membaca item, harga, pajak, lalu mengkategorikannya otomatis.
+          Foto struk belanja, teks struk dibaca otomatis di HP, lalu item, harga, pajak, dan kategorinya diisi. Periksa hasilnya sebelum disimpan.
         </Text>
       </Card>
       {uri ? <Image source={{ uri }} style={{ width: '100%', height: 360, borderRadius: 16, marginBottom: 12 }} resizeMode="contain" /> : null}
