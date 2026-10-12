@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router';
 import { Alert, FlatList, Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
-import { Chip, Empty, Field } from '../../components/ui';
-import { prettyDate, rupiah, today } from '../../lib/format';
+import { DateField, localIso } from '../../components/DateField';
+import { Chip, Empty } from '../../components/ui';
+import { prettyDate, rupiah } from '../../lib/format';
 import { useStore } from '../../lib/store';
 import { C } from '../../lib/theme';
 
@@ -12,11 +13,11 @@ type Preset = (typeof PRESETS)[number];
 const shiftDays = (n: number) => {
   const d = new Date();
   d.setDate(d.getDate() - n);
-  return d.toISOString().slice(0, 10);
+  return localIso(d);
 };
 
 function presetRange(p: Preset): [string, string] {
-  const t = today();
+  const t = localIso();
   if (p === 'Hari ini') return [t, t];
   if (p === '7 hari') return [shiftDays(6), t];
   if (p === '30 hari') return [shiftDays(29), t];
@@ -62,10 +63,10 @@ export default function History() {
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <View style={{ flex: 1 }}>
-              <Field label="Dari (YYYY-MM-DD)" value={from} onChangeText={edit(setFrom)} placeholder="2026-01-01" />
+              <DateField label="Dari" value={from} onChange={edit(setFrom)} placeholder="Pilih tanggal" />
             </View>
             <View style={{ flex: 1 }}>
-              <Field label="Sampai (YYYY-MM-DD)" value={to} onChangeText={edit(setTo)} placeholder="2026-12-31" />
+              <DateField label="Sampai" value={to} onChange={edit(setTo)} placeholder="Pilih tanggal" />
             </View>
           </View>
         </View>
