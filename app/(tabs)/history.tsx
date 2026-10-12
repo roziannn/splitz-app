@@ -87,9 +87,14 @@ export default function History() {
                 <Text style={{ color: C.primary, fontSize: 12, fontWeight: '600', marginTop: 2 }}>Lihat split bill ›</Text>
               </Pressable>
             ) : null}
-            <Text style={{ color: C.muted, fontSize: 11 }}>Ketuk untuk edit · tahan untuk hapus</Text>
+            <Text style={{ color: C.muted, fontSize: 11 }}>Ketuk untuk edit</Text>
           </View>
-          <Text style={{ fontWeight: '800', color: C.primary }}>{rupiah(r.total)}</Text>
+          <View style={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
+            <Text style={{ fontWeight: '800', color: C.primary }}>{rupiah(r.total)}</Text>
+            <Pressable onPress={() => confirmRemove(r.id, r.merchant)} hitSlop={10} accessibilityLabel="Hapus struk">
+              <Text style={{ color: C.danger, fontSize: 12, fontWeight: '600' }}>🗑 Hapus</Text>
+            </Pressable>
+          </View>
         </Pressable>
       )}
     />
