@@ -11,7 +11,7 @@ export default function TabsLayout() {
   return (
     <Tabs screenOptions={{ headerStyle: { backgroundColor: C.primary }, headerTintColor: '#fff', tabBarActiveTintColor: C.primary }}>
       <Tabs.Screen name="index" options={{ title: 'Laporan', tabBarIcon: icon('stats-chart') }} />
-      <Tabs.Screen name="scan" options={{ title: 'Scan', tabBarIcon: icon('scan') }} />
+      <Tabs.Screen name="catat" options={{ title: 'Catat', tabBarIcon: icon('add-circle') }} />
       <Tabs.Screen name="history" options={{ title: 'Riwayat', tabBarIcon: icon('receipt') }} />
       <Tabs.Screen name="settings" options={{ title: 'Pengaturan', tabBarIcon: icon('settings') }} />
     </Tabs>
