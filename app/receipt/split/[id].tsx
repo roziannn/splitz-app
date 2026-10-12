@@ -48,6 +48,7 @@ export default function Split() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+      <Text style={{ color: C.muted, fontSize: 12, marginBottom: 8 }}>Split tersimpan otomatis di riwayat.</Text>
       <Card>
         <Text style={{ fontWeight: '700', marginBottom: 8 }}>Peserta</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
