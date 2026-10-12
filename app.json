@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Splitz",
+    "slug": "splitz-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "splitz",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": { "backgroundColor": "#0f766e" },
+    "android": {
+      "package": "com.roziannn.splitz",
+      "permissions": ["CAMERA"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      ["expo-image-picker", { "cameraPermission": "Splitz memerlukan kamera untuk memindai struk belanja." }]
+    ]
+  }
+}
