@@ -3,6 +3,9 @@ import { localIso } from './dates';
 export const rupiah = (n: number) =>
   'Rp' + Math.round(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
+/** 3000 -> "3.000"; 0 -> "" (kolom kosong, bukan "0"). */
+export const thousands = (n: number) => (n ? Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.') : '');
+
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
 /** Tanggal hari ini menurut zona waktu perangkat (bukan UTC). */
