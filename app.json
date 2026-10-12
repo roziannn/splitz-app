@@ -2,7 +2,7 @@
   "expo": {
     "name": "Splitz",
     "slug": "splitz-app",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "scheme": "splitz",
     "userInterfaceStyle": "light",
@@ -49,6 +49,13 @@
       "eas": {
         "projectId": "9bf2dfff-15d1-4187-98c2-4505760a4b2d"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/9bf2dfff-15d1-4187-98c2-4505760a4b2d",
+      "requestHeaders": {
+        "expo-channel-name": "production"
+      },
+      "checkAutomatically": "NEVER"
     }
   }
 }
