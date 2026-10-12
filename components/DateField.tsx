@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { localIso } from '../lib/dates';
 import { C } from '../lib/theme';
+
+export { localIso };
 
 const MONTHS = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 const DAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
 const pad = (n: number) => String(n).padStart(2, '0');
-
-/** YYYY-MM-DD menurut zona waktu perangkat (bukan UTC). */
-export const localIso = (d: Date = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 const parse = (iso: string) => {
   const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
