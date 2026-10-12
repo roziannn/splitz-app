@@ -15,6 +15,17 @@ export interface Person {
   name: string;
 }
 
+/** Asal catatan: menentukan fitur yang tersedia (split bill hanya untuk hasil scan). */
+export type Source = 'scan' | 'manual' | 'bensin';
+
+/** Data khusus catatan bensin. */
+export interface Fuel {
+  type: string; // mis. Pertalite
+  liters: number;
+  pricePerLiter: number;
+  odometer?: number; // km
+}
+
 export interface Receipt {
   id: string;
   merchant: string;
@@ -27,4 +38,6 @@ export interface Receipt {
   people: Person[];
   createdAt: number;
   image?: string; // nama file foto struk di documentDirectory/receipts
+  source?: Source; // kosong = data lama (dianggap hasil scan)
+  fuel?: Fuel;
 }
