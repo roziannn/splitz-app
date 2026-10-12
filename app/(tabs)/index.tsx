@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { ChartBoundary, Donut, LineChart } from '../../components/charts';
-import { Card, Chip, Empty } from '../../components/ui';
+import { Button, Card, Chip, Empty } from '../../components/ui';
 import { prettyDate, rupiah } from '../../lib/format';
 import { buildReport, Range } from '../../lib/report';
 import { useStore } from '../../lib/store';
@@ -11,6 +11,8 @@ const RANGES: { key: Range; label: string; long: string }[] = [
   { key: 'day', label: 'Hari ini', long: 'hari ini' },
   { key: 'week', label: '7 hari', long: '7 hari terakhir' },
   { key: 'month', label: '30 hari', long: '30 hari terakhir' },
+  { key: 'mtd', label: 'Bulan ini', long: 'bulan ini' },
+  { key: 'all', label: 'Semua', long: 'semua waktu' },
 ];
 
 function Tile({ label, value, sub, subColor }: { label: string; value: string; sub?: string; subColor?: string }) {
@@ -31,9 +33,9 @@ export default function Dashboard() {
   const rep = useMemo(() => buildReport(receipts, range), [receipts, range]);
   const meta = RANGES.find((r) => r.key === range)!;
   const top = rep.byCat[0];
-  const days = [...rep.series].reverse().filter((d) => d.value > 0);
+  // Untuk "Hari ini" grafik memuat 7 hari, tetapi daftar harian hanya hari ini.
+  const days = [...rep.series].reverse().filter((d) => d.value > 0).slice(0, range === 'day' ? 1 : undefined);
 
-  // Pengeluaran naik = merah (kurang baik), turun = hijau.
   const deltaText =
     rep.delta === null
       ? rep.total > 0 ? 'Belum ada pembanding' : undefined
@@ -41,7 +43,7 @@ export default function Dashboard() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-      <View style={{ flexDirection: 'row', marginBottom: 8 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
         {RANGES.map((r) => (
           <Chip key={r.key} label={r.label} active={range === r.key} onPress={() => setRange(r.key)} />
         ))}
@@ -59,14 +61,33 @@ export default function Dashboard() {
         <Tile label="Terbesar" value={top ? top.name : '-'} sub={top ? `${top.pct.toFixed(0)}% total` : undefined} />
       </View>
 
-      {!rep.count ? (
-        <Empty text="Belum ada pengeluaran pada periode ini. Scan struk di tab Scan." />
+      {!receipts.length ? (
+        <Empty text="Belum ada struk. Scan struk di tab Scan." />
+      ) : !rep.count ? (
+        <Card>
+          <Text style={{ fontWeight: '700', marginBottom: 4 }}>Tidak ada struk pada periode ini</Text>
+          <Text style={{ color: C.muted, marginBottom: 12 }}>
+            Ada {rep.outside.count} struk di luar periode{rep.outside.latest ? ` (tanggal terbaru ${prettyDate(rep.outside.latest)})` : ''}. Periksa tanggal struk di Riwayat, atau lihat semua.
+          </Text>
+          <Button title="Lihat semua" onPress={() => setRange('all')} />
+        </Card>
       ) : (
         <>
+          {rep.total <= 0 ? (
+            <Card style={{ borderColor: C.warn }}>
+              <Text style={{ fontWeight: '700', marginBottom: 2 }}>Total masih Rp0</Text>
+              <Text style={{ color: C.muted }}>Ada {rep.count} struk, tetapi harga itemnya masih kosong. Buka Riwayat, ketuk struknya, lalu isi harga item.</Text>
+            </Card>
+          ) : null}
+          {rep.outside.count > 0 && range !== 'all' ? (
+            <Text style={{ color: C.muted, fontSize: 12, marginBottom: 12 }} onPress={() => setRange('all')}>
+              {rep.outside.count} struk lain di luar periode ini. Ketuk untuk melihat semua.
+            </Text>
+          ) : null}
           <Card>
             <Text style={{ fontWeight: '700', marginBottom: 2 }}>Tren pengeluaran</Text>
             <Text style={{ color: C.muted, fontSize: 12, marginBottom: 8 }}>
-              Total per hari · {range === 'day' ? '7 hari terakhir' : meta.long}. Ketuk grafik untuk melihat nilainya.
+              Total per hari · {range === 'day' ? '7 hari terakhir' : rep.clipped ? '90 hari terakhir' : meta.long}. Ketuk grafik untuk melihat nilainya.
             </Text>
             <ChartBoundary>
               <LineChart points={rep.series} />
