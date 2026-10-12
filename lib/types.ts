@@ -26,4 +26,5 @@ export interface Receipt {
   total: number;
   people: Person[];
   createdAt: number;
+  image?: string; // nama file foto struk di documentDirectory/receipts
 }

@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Image, ScrollView, Text } from 'react-native';
 import { Button, Card } from '../../components/ui';
+import { saveReceiptImage } from '../../lib/images';
 import { scanReceipt } from '../../lib/ocr';
 import { useStore } from '../../lib/store';
 import { C } from '../../lib/theme';
@@ -26,7 +27,8 @@ export default function Scan() {
     setBusy(true);
     try {
       const r = await scanReceipt(uri);
-      upsert(r);
+      const image = await saveReceiptImage(uri, r.id); // simpan foto agar bisa dilihat lagi
+      upsert(image ? { ...r, image } : r);
       setUri(null);
       router.push(`/receipt/${r.id}`);
     } catch (e: any) {

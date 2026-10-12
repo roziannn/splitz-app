@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { deleteReceiptImage } from './images';
 import { loadReceipts, saveReceipts } from './storage';
 import { Receipt } from './types';
 
@@ -58,7 +59,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ready,
       upsert: (r) =>
         commit((prev) => (prev.some((x) => x.id === r.id) ? prev.map((x) => (x.id === r.id ? r : x)) : [r, ...prev])),
-      remove: (id) => commit((prev) => prev.filter((x) => x.id !== id)),
+      remove: (id) => {
+        deleteReceiptImage(latest.current.find((x) => x.id === id)?.image);
+        commit((prev) => prev.filter((x) => x.id !== id));
+      },
       get: (id) => receipts.find((r) => r.id === id),
       flush,
     }),

@@ -1,9 +1,10 @@
 import { useRouter } from 'expo-router';
-import { Alert, FlatList, Pressable, Text, View } from 'react-native';
+import { Alert, FlatList, Image, Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
 import { DateField, localIso } from '../../components/DateField';
 import { Chip, Empty } from '../../components/ui';
 import { prettyDate, rupiah } from '../../lib/format';
+import { imagePath } from '../../lib/images';
 import { useStore } from '../../lib/store';
 import { C } from '../../lib/theme';
 
@@ -74,13 +75,19 @@ export default function History() {
       ListEmptyComponent={<Empty text={receipts.length ? 'Tidak ada struk di rentang tanggal ini.' : 'Belum ada struk.'} />}
       renderItem={({ item: r }) => (
         <Pressable
-          onPress={() => router.push(r.people.length ? `/receipt/split/${r.id}` : `/receipt/${r.id}`)}
+          onPress={() => router.push(`/receipt/${r.id}`)}
           onLongPress={() => confirmRemove(r.id, r.merchant)}
-          style={{ backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: C.border, flexDirection: 'row', justifyContent: 'space-between' }}>
+          style={{ backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: C.border, flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
+          {r.image ? <Image source={{ uri: imagePath(r.image) }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: C.border }} /> : null}
           <View style={{ flex: 1 }}>
             <Text style={{ fontWeight: '700', color: C.text }}>{r.merchant}</Text>
             <Text style={{ color: C.muted, fontSize: 12 }}>{prettyDate(r.date)} · {r.items.length} item{r.people.length ? ` · split ${r.people.length} orang` : ''}</Text>
-            <Text style={{ color: C.muted, fontSize: 11 }}>Ketuk untuk buka · tahan untuk hapus</Text>
+            {r.people.length ? (
+              <Pressable onPress={() => router.push(`/receipt/split/${r.id}`)} hitSlop={6}>
+                <Text style={{ color: C.primary, fontSize: 12, fontWeight: '600', marginTop: 2 }}>Lihat split bill ›</Text>
+              </Pressable>
+            ) : null}
+            <Text style={{ color: C.muted, fontSize: 11 }}>Ketuk untuk edit · tahan untuk hapus</Text>
           </View>
           <Text style={{ fontWeight: '800', color: C.primary }}>{rupiah(r.total)}</Text>
         </Pressable>
