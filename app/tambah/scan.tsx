@@ -7,7 +7,6 @@ import { saveReceiptImage } from '../../lib/images';
 import { scanReceipt } from '../../lib/ocr';
 import { useStore } from '../../lib/store';
 import { C } from '../../lib/theme';
-import { uid, today } from '../../lib/format';
 
 export default function Scan() {
   const router = useRouter();
@@ -28,20 +27,13 @@ export default function Scan() {
     try {
       const r = await scanReceipt(uri);
       const image = await saveReceiptImage(uri, r.id); // simpan foto agar bisa dilihat lagi
-      upsert(image ? { ...r, image } : r);
-      setUri(null);
-      router.push(`/receipt/${r.id}`);
+      upsert({ ...r, source: 'scan', ...(image ? { image } : {}) });
+      router.replace(`/receipt/${r.id}`);
     } catch (e: any) {
       Alert.alert('Gagal memindai', e.message);
     } finally {
       setBusy(false);
     }
-  };
-
-  const manual = () => {
-    const id = uid();
-    upsert({ id, merchant: 'Struk manual', date: today(), items: [], tax: 0, service: 0, discount: 0, total: 0, people: [], createdAt: Date.now() });
-    router.push(`/receipt/${id}`);
   };
 
   return (
@@ -55,8 +47,7 @@ export default function Scan() {
       {uri ? <Image source={{ uri }} style={{ width: '100%', height: 360, borderRadius: 16, marginBottom: 12 }} resizeMode="contain" /> : null}
       <Button title="📷  Ambil foto struk" onPress={() => pick(true)} style={{ marginBottom: 10 }} />
       <Button title="🖼️  Pilih dari galeri" kind="ghost" onPress={() => pick(false)} style={{ marginBottom: 10 }} />
-      {uri ? <Button title="Ekstrak data struk" onPress={run} loading={busy} style={{ marginBottom: 10 }} /> : null}
-      <Button title="Input manual" kind="ghost" onPress={manual} />
+      {uri ? <Button title="Ekstrak data struk" onPress={run} loading={busy} /> : null}
     </ScrollView>
   );
 }

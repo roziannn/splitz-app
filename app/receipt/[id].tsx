@@ -1,11 +1,12 @@
 import * as ImagePicker from 'expo-image-picker';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { DateField } from '../../components/DateField';
 import { Button, Card, Chip, Field } from '../../components/ui';
 import { parseNum, rupiah, uid } from '../../lib/format';
 import { deleteReceiptImage, imagePath, saveReceiptImage } from '../../lib/images';
+import { canSplit, editHref } from '../../lib/routes';
 import { grandTotal, itemsSubtotal } from '../../lib/split';
 import { useStore } from '../../lib/store';
 import { C } from '../../lib/theme';
@@ -18,6 +19,7 @@ export default function ReceiptDetail() {
   const [viewer, setViewer] = useState(false);
   const r = get(id);
   if (!r) return <Text style={{ padding: 16 }}>Struk tidak ditemukan.</Text>;
+  if (r.source === 'bensin') return <Redirect href={editHref(r) as any} />;
 
   const save = (patch: Partial<Receipt>) => {
     const next = { ...r, ...patch };
@@ -104,11 +106,13 @@ export default function ReceiptDetail() {
         <Text style={{ fontSize: 22, fontWeight: '800', color: C.primary }}>Total {rupiah(r.total)}</Text>
       </Card>
 
-      <Button
-        title={r.people.length ? `Lihat / ubah Split Bill (${r.people.length} orang)` : 'Split Bill'}
-        onPress={() => router.push(`/receipt/split/${r.id}`)}
-        style={{ marginBottom: 10 }}
-      />
+      {canSplit(r) ? (
+        <Button
+          title={r.people.length ? `Lihat / ubah Split Bill (${r.people.length} orang)` : 'Split Bill'}
+          onPress={() => router.push(`/receipt/split/${r.id}`)}
+          style={{ marginBottom: 10 }}
+        />
+      ) : null}
       <Button
         title="Hapus struk"
         kind="danger"

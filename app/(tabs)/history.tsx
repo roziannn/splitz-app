@@ -6,6 +6,7 @@ import { DateField, localIso } from '../../components/DateField';
 import { Chip, Empty } from '../../components/ui';
 import { prettyDate, rupiah } from '../../lib/format';
 import { imagePath } from '../../lib/images';
+import { editHref } from '../../lib/routes';
 import { useStore } from '../../lib/store';
 import { C } from '../../lib/theme';
 
@@ -76,14 +77,14 @@ export default function History() {
       ListEmptyComponent={<Empty text={receipts.length ? 'Tidak ada struk di rentang tanggal ini.' : 'Belum ada struk.'} />}
       renderItem={({ item: r }) => (
         <Pressable
-          onPress={() => router.push(`/receipt/${r.id}`)}
+          onPress={() => router.push(editHref(r) as any)}
           onLongPress={() => confirmRemove(r.id, r.merchant)}
           style={{ backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: C.border, flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
           {r.image ? (
             <View style={{ width: 52, height: 52 }}>
               <Image source={{ uri: imagePath(r.image) }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: C.border }} />
               <Pressable
-                onPress={() => router.push(`/receipt/${r.id}`)}
+                onPress={() => router.push(editHref(r) as any)}
                 hitSlop={8}
                 accessibilityLabel="Edit struk"
                 style={{ position: 'absolute', right: -6, bottom: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: C.primary, borderWidth: 2, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
@@ -92,7 +93,7 @@ export default function History() {
             </View>
           ) : (
             <Pressable
-              onPress={() => router.push(`/receipt/${r.id}`)}
+              onPress={() => router.push(editHref(r) as any)}
               hitSlop={8}
               accessibilityLabel="Edit struk"
               style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center' }}>

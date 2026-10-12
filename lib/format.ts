@@ -1,11 +1,15 @@
+import { localIso } from './dates';
+
 export const rupiah = (n: number) =>
   'Rp' + Math.round(n || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 export const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
 
-export const today = () => new Date().toISOString().slice(0, 10);
+/** Tanggal hari ini menurut zona waktu perangkat (bukan UTC). */
+export const today = () => localIso();
 
-export const parseNum = (s: string) => Number(String(s).replace(/[^\d.-]/g, '')) || 0;
+/** Bilangan bulat (rupiah, qty, km): titik dan koma dianggap pemisah ribuan, jadi "10.000" = 10000. */
+export const parseNum = (s: string) => Number(String(s).replace(/(?!^-)[^\d]/g, '')) || 0;
 
 export const prettyDate = (iso: string) => {
   const d = new Date(iso + 'T00:00:00');
