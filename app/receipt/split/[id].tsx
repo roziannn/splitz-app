@@ -1,6 +1,6 @@
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, Share, Text, View } from 'react-native';
+import { Alert, ScrollView, Share, Text, View } from 'react-native';
 import { Button, Card, Chip, Field } from '../../../components/ui';
 import { prettyDate, rupiah, uid } from '../../../lib/format';
 import { computeSplit } from '../../../lib/split';
@@ -9,7 +9,9 @@ import { C } from '../../../lib/theme';
 
 export default function Split() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { get, upsert } = useStore();
+  const router = useRouter();
+  const { get, upsert, flush } = useStore();
+  const [saving, setSaving] = useState(false);
   const [name, setName] = useState('');
   const r = get(id);
   if (!r) return <Text style={{ padding: 16 }}>Struk tidak ditemukan.</Text>;
@@ -39,7 +41,23 @@ export default function Split() {
 
   const { shares, unassigned } = computeSplit(r);
 
-  const share = () => {
+  const save = async () => {
+    setSaving(true);
+    try {
+      await flush();
+      Alert.alert('Tersimpan', 'Split bill disimpan di Riwayat.', [
+        { text: 'Tetap di sini', style: 'cancel' },
+        { text: 'Lihat Riwayat', onPress: () => router.navigate('/history') },
+      ]);
+    } catch {
+      Alert.alert('Gagal menyimpan', 'Coba lagi.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const share = async () => {
+    await flush().catch(() => {});
     const lines = shares
       .filter((s) => s.total > 0)
       .map((s) => `• ${s.name}: ${rupiah(s.total)}`);
@@ -48,7 +66,7 @@ export default function Split() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
-      <Text style={{ color: C.muted, fontSize: 12, marginBottom: 8 }}>Split tersimpan otomatis di riwayat.</Text>
+      <Text style={{ color: C.muted, fontSize: 12, marginBottom: 8 }}>Perubahan disimpan otomatis. Tekan Simpan untuk memastikan.</Text>
       <Card>
         <Text style={{ fontWeight: '700', marginBottom: 8 }}>Peserta</Text>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
@@ -101,7 +119,8 @@ export default function Split() {
             ))}
             {unassigned > 0 ? <Text style={{ color: C.warn }}>Belum dibagi: {rupiah(unassigned)}</Text> : null}
           </Card>
-          <Button title="Bagikan hasil" onPress={share} />
+          <Button title="Simpan" onPress={save} loading={saving} style={{ marginBottom: 10 }} />
+          <Button title="Bagikan hasil" kind="ghost" onPress={share} />
         </>
       ) : null}
     </ScrollView>
