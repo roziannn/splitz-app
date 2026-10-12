@@ -1,22 +1,27 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { DateField } from '../../components/DateField';
-import { Button, Card, Chip, Field } from '../../components/ui';
-import { parseNum, rupiah, uid } from '../../lib/format';
+import { ItemCard, AddItem } from '../../components/ItemEditor';
+import { MoneyField } from '../../components/MoneyField';
+import { Button, Card, Field } from '../../components/ui';
+import { rupiah } from '../../lib/format';
 import { deleteReceiptImage, imagePath, saveReceiptImage } from '../../lib/images';
 import { canSplit, editHref } from '../../lib/routes';
 import { grandTotal, itemsSubtotal } from '../../lib/split';
 import { useStore } from '../../lib/store';
 import { C } from '../../lib/theme';
-import { CATEGORIES, Item, Receipt } from '../../lib/types';
+import { Item, Receipt } from '../../lib/types';
 
 export default function ReceiptDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { get, upsert, remove } = useStore();
   const [viewer, setViewer] = useState(false);
+  const [undo, setUndo] = useState<{ item: Item; index: number } | null>(null);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
   const r = get(id);
   if (!r) return <Text style={{ padding: 16 }}>Struk tidak ditemukan.</Text>;
   if (r.source === 'bensin') return <Redirect href={editHref(r) as any} />;
@@ -27,6 +32,23 @@ export default function ReceiptDetail() {
     upsert(next);
   };
   const setItem = (iid: string, patch: Partial<Item>) => save({ items: r.items.map((i) => (i.id === iid ? { ...i, ...patch } : i)) });
+
+  // Hapus langsung tanpa dialog; ada waktu 5 detik untuk mengurungkan.
+  const deleteItem = (item: Item) => {
+    const index = r.items.findIndex((x) => x.id === item.id);
+    save({ items: r.items.filter((x) => x.id !== item.id) });
+    setUndo({ item, index });
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setUndo(null), 5000);
+  };
+  const restoreItem = () => {
+    if (!undo) return;
+    const items = [...r.items];
+    items.splice(Math.min(undo.index, items.length), 0, undo.item);
+    save({ items });
+    setUndo(null);
+    if (timer.current) clearTimeout(timer.current);
+  };
 
   const pickPhoto = async (camera: boolean) => {
     const perm = camera ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -51,7 +73,8 @@ export default function ReceiptDetail() {
     ]);
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
+    <View style={{ flex: 1 }}>
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 96 }} keyboardShouldPersistTaps="handled">
       {r.image ? (
         <Card>
           <Pressable onPress={() => setViewer(true)}>
@@ -72,36 +95,22 @@ export default function ReceiptDetail() {
         <DateField label="Tanggal" value={r.date} onChange={(v) => v && save({ date: v })} />
       </Card>
 
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+        <Text style={{ fontSize: 16, fontWeight: '800', color: C.text }}>Item ({r.items.length})</Text>
+        <Text style={{ color: C.muted }}>Subtotal {rupiah(itemsSubtotal(r))}</Text>
+      </View>
+      {r.items.length === 0 ? (
+        <Text style={{ color: C.muted, marginBottom: 12 }}>Belum ada item. Tambahkan di bawah.</Text>
+      ) : null}
       {r.items.map((i) => (
-        <Card key={i.id}>
-          <Field label="Nama item" value={i.name} onChangeText={(t) => setItem(i.id, { name: t })} />
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <View style={{ width: 70 }}>
-              <Field label="Qty" keyboardType="numeric" value={String(i.qty)} onChangeText={(t) => setItem(i.id, { qty: parseNum(t) || 1 })} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Field label="Harga total (Rp)" keyboardType="numeric" value={i.price ? String(i.price) : ''} onChangeText={(t) => setItem(i.id, { price: parseNum(t) })} />
-            </View>
-          </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            {CATEGORIES.map((c) => (
-              <Chip key={c} label={c} active={i.category === c} onPress={() => setItem(i.id, { category: c })} />
-            ))}
-          </View>
-          <Button title="Hapus item" kind="ghost" onPress={() => save({ items: r.items.filter((x) => x.id !== i.id) })} />
-        </Card>
+        <ItemCard key={i.id} item={i} onChange={(patch) => setItem(i.id, patch)} onDelete={() => deleteItem(i)} />
       ))}
-      <Button
-        title="+ Tambah item"
-        kind="ghost"
-        style={{ marginBottom: 12 }}
-        onPress={() => save({ items: [...r.items, { id: uid(), name: '', qty: 1, price: 0, category: 'Lainnya', assignedTo: [] }] })}
-      />
+      <AddItem onAdd={(item) => save({ items: [...r.items, item] })} />
 
       <Card>
-        <Field label="Pajak (Rp)" keyboardType="numeric" value={r.tax ? String(r.tax) : ''} onChangeText={(t) => save({ tax: parseNum(t) })} />
-        <Field label="Service charge (Rp)" keyboardType="numeric" value={r.service ? String(r.service) : ''} onChangeText={(t) => save({ service: parseNum(t) })} />
-        <Field label="Diskon (Rp)" keyboardType="numeric" value={r.discount ? String(r.discount) : ''} onChangeText={(t) => save({ discount: parseNum(t) })} />
+        <MoneyField label="Pajak" value={r.tax} onChange={(n) => save({ tax: n })} />
+        <MoneyField label="Service charge" value={r.service} onChange={(n) => save({ service: n })} />
+        <MoneyField label="Diskon" value={r.discount} onChange={(n) => save({ discount: n })} />
         <Text style={{ color: C.muted }}>Subtotal {rupiah(itemsSubtotal(r))}</Text>
         <Text style={{ fontSize: 22, fontWeight: '800', color: C.primary }}>Total {rupiah(r.total)}</Text>
       </Card>
@@ -131,5 +140,15 @@ export default function ReceiptDetail() {
         </Pressable>
       </Modal>
     </ScrollView>
+
+    {undo ? (
+      <View style={{ position: 'absolute', left: 16, right: 16, bottom: 16, backgroundColor: C.text, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 6 }}>
+        <Text style={{ color: '#fff' }} numberOfLines={1}>{undo.item.name ? `"${undo.item.name}" dihapus` : 'Item dihapus'}</Text>
+        <Pressable onPress={restoreItem} hitSlop={10}>
+          <Text style={{ color: '#5eead4', fontWeight: '800' }}>URUNGKAN</Text>
+        </Pressable>
+      </View>
+    ) : null}
+    </View>
   );
 }

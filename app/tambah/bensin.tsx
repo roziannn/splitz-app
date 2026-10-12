@@ -2,10 +2,11 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, Text, View } from 'react-native';
 import { DateField } from '../../components/DateField';
+import { MoneyField } from '../../components/MoneyField';
 import { Button, Card, Chip, Field } from '../../components/ui';
 import { localIso } from '../../lib/dates';
 import { FUEL_TYPES, fmtLiters, previousFill, STATIONS } from '../../lib/fuel';
-import { parseNum, uid } from '../../lib/format';
+import { uid } from '../../lib/format';
 import { useStore } from '../../lib/store';
 import { C } from '../../lib/theme';
 import { Receipt } from '../../lib/types';
@@ -20,14 +21,11 @@ export default function Bensin() {
   const [date, setDate] = useState(existing?.date ?? localIso());
   const [station, setStation] = useState(existing?.merchant ?? '');
   const [type, setType] = useState(f?.type ?? '');
-  const [price, setPrice] = useState(f ? String(f.pricePerLiter) : '');
-  const [total, setTotal] = useState(existing ? String(existing.total) : '');
-  const [odo, setOdo] = useState(f?.odometer ? String(f.odometer) : '');
+  const [priceNum, setPrice] = useState(f?.pricePerLiter ?? 0);
+  const [totalNum, setTotal] = useState(existing?.total ?? 0);
+  const [odoNum, setOdo] = useState(f?.odometer ?? 0);
 
-  const priceNum = parseNum(price);
-  const totalNum = parseNum(total); // rupiah dan km: titik/koma = pemisah ribuan
   const litersNum = priceNum > 0 && totalNum > 0 ? Math.round((totalNum / priceNum) * 100) / 100 : 0; // otomatis, tidak diketik
-  const odoNum = parseNum(odo);
   const prev = odoNum > 0 ? previousFill(receipts, date, existing?.id) : undefined;
   const distance = prev?.fuel?.odometer && odoNum > prev.fuel.odometer ? odoNum - prev.fuel.odometer : 0;
 
@@ -74,10 +72,10 @@ export default function Bensin() {
         </View>
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <View style={{ flex: 1 }}>
-            <Field label="Harga per liter (Rp)" keyboardType="numeric" value={price} onChangeText={setPrice} placeholder="10000" />
+            <MoneyField label="Harga per liter" value={priceNum} onChange={setPrice} placeholder="10.000" />
           </View>
           <View style={{ flex: 1 }}>
-            <Field label="Total bayar (Rp)" keyboardType="numeric" value={total} onChangeText={setTotal} placeholder="50000" />
+            <MoneyField label="Total bayar" value={totalNum} onChange={setTotal} placeholder="50.000" />
           </View>
         </View>
         <Field
@@ -90,7 +88,7 @@ export default function Bensin() {
       </Card>
 
       <Card>
-        <Field label="Odometer (km) · opsional" keyboardType="numeric" value={odo} onChangeText={setOdo} placeholder="mis. 15230" />
+        <MoneyField label="Odometer · opsional" prefix="" suffix="km" value={odoNum} onChange={setOdo} placeholder="mis. 15.230" />
         {distance > 0 ? (
           <Text style={{ color: C.muted }}>
             Jarak sejak isi sebelumnya: {distance.toLocaleString('id-ID')} km
