@@ -2,6 +2,9 @@ name: Build APK
 
 # Jalankan manual (Actions > Build APK > Run workflow) atau push tag v*.
 # Hasilnya dirilis ke GitHub Releases dengan tag v<versi di app.json>.
+# Nama file APK selalu Splitz.apk, jadi link
+# https://github.com/roziannn/splitz-app/releases/latest/download/Splitz.apk
+# selalu mengarah ke versi terbaru.
 on:
   workflow_dispatch:
   push:
@@ -40,7 +43,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="v${{ steps.ver.outputs.version }}"
-          cp android/app/build/outputs/apk/release/app-release.apk "Splitz-${TAG}.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk Splitz.apk
           gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
-          gh release create "$TAG" "Splitz-${TAG}.apk" --target "${{ github.sha }}" \
+          gh release create "$TAG" Splitz.apk --target "${{ github.sha }}" \
             --title "Splitz ${TAG}" --notes "Unduh APK lalu pasang di Android. Bila sudah terpasang, pakai tombol Cek pembaruan di tab Pengaturan."
