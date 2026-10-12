@@ -1,0 +1,27 @@
+name: OTA Update
+
+# Setiap merge ke main menerbitkan update JS ke channel "production",
+# sehingga tombol "Perbarui sekarang" di aplikasi bisa mengambilnya tanpa APK baru.
+# Hanya berlaku untuk APK dengan versi (runtimeVersion) yang sama dengan app.json.
+# Perlu secret EXPO_TOKEN di Settings > Secrets and variables > Actions.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm install
+      - name: Publish OTA update
+        run: eas update --branch production --message "${{ github.sha }}" --non-interactive
