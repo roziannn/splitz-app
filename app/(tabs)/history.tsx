@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Alert, FlatList, Image, Pressable, Text, View } from 'react-native';
 import { useState } from 'react';
@@ -78,7 +79,26 @@ export default function History() {
           onPress={() => router.push(`/receipt/${r.id}`)}
           onLongPress={() => confirmRemove(r.id, r.merchant)}
           style={{ backgroundColor: '#fff', borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: C.border, flexDirection: 'row', justifyContent: 'space-between', gap: 12 }}>
-          {r.image ? <Image source={{ uri: imagePath(r.image) }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: C.border }} /> : null}
+          {r.image ? (
+            <View style={{ width: 52, height: 52 }}>
+              <Image source={{ uri: imagePath(r.image) }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: C.border }} />
+              <Pressable
+                onPress={() => router.push(`/receipt/${r.id}`)}
+                hitSlop={8}
+                accessibilityLabel="Edit struk"
+                style={{ position: 'absolute', right: -6, bottom: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: C.primary, borderWidth: 2, borderColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="pencil" size={12} color="#fff" />
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => router.push(`/receipt/${r.id}`)}
+              hitSlop={8}
+              accessibilityLabel="Edit struk"
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="pencil" size={18} color={C.primary} />
+            </Pressable>
+          )}
           <View style={{ flex: 1 }}>
             <Text style={{ fontWeight: '700', color: C.text }}>{r.merchant}</Text>
             <Text style={{ color: C.muted, fontSize: 12 }}>{prettyDate(r.date)} · {r.items.length} item{r.people.length ? ` · split ${r.people.length} orang` : ''}</Text>
@@ -87,12 +107,11 @@ export default function History() {
                 <Text style={{ color: C.primary, fontSize: 12, fontWeight: '600', marginTop: 2 }}>Lihat split bill ›</Text>
               </Pressable>
             ) : null}
-            <Text style={{ color: C.muted, fontSize: 11 }}>Ketuk untuk edit</Text>
           </View>
           <View style={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
             <Text style={{ fontWeight: '800', color: C.primary }}>{rupiah(r.total)}</Text>
             <Pressable onPress={() => confirmRemove(r.id, r.merchant)} hitSlop={10} accessibilityLabel="Hapus struk">
-              <Text style={{ color: C.danger, fontSize: 12, fontWeight: '600' }}>🗑 Hapus</Text>
+              <Text style={{ color: C.danger, fontSize: 12, fontWeight: '600' }}>Hapus</Text>
             </Pressable>
           </View>
         </Pressable>
