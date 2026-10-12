@@ -57,7 +57,9 @@ const KW = {
   service: /\b(service|servis|svc|s\.?charge|layanan)\b/i,
   discount: /\b(disk(on)?|discount|potongan|promo|voucher|hemat)\b/i,
   payment: /\b(tunai|cash|kembali|kembalian|change|bayar|debit|kredit|credit|qris|gopay|ovo|dana|shopeepay|e-?money|kartu|card|edc|dibayar|payment)\b/i,
-  noise: /\b(kasir|cashier|struk|invoice|inv\b|no\.?\s*(meja|order|trx|transaksi|nota|bill)|meja|table|npwp|telp|tel\b|phone|wa\b|terima kasih|thank|selamat|www\.|\.com|wifi|password|alamat|jl\.|jalan|operator|printed|tanggal|date|waktu|time|pelanggan|customer|member|poin|point|item\b|qty\b|harga\b|struk)\b/i,
+  noise: /\b(kasir|cashier|struk|invoice|inv\b|no\.?\s*(meja|order|trx|transaksi|nota|bill)|meja|table|npwp|telp|tel\b|phone|wa\b|terima kasih|thank|selamat|www\.|\.com|wifi|password|alamat|jl\.|jalan|operator|printed|tanggal|date|waktu|time|pelanggan|customer|member|poin|point|item\b|qty\b|harga\b|struk|channel|dine\s*-?\s*in|take\s*-?\s*away|trx|supported|powered|kota|kec|kel|kab|rt\s*\/?\s*rw)\b/i,
+  // nomor telepon, alamat web/email, dan baris "Label : isi" (Kasir : Hafiz, Member : CASH, dst)
+  header: /(\+62|\(?\b0\d{1,3}\)?[-\s]?\d{6,9}\b|\b[\w-]+\.(?:id|com|co\.id|net)\b|@\w|^[a-z][a-z .\/]{1,24}\s*:)/i,
 };
 
 function groupRows(lines: OcrLine[]): string[] {
@@ -111,15 +113,35 @@ export function parseReceipt(lines: OcrLine[]): Receipt {
   const items: Item[] = [];
   let tax = 0, service = 0, discount = 0, parsedTotal = 0;
   let pendingName: string | null = null;
+  let qtyLine = false;
 
   const merchant =
     rows.slice(0, 6).find((r) => /[a-z]{3,}/i.test(r) && !KW.noise.test(r) && !findDate([r]) && !/^[\d\s.,:/-]+$/.test(r)) || 'Toko';
 
   for (const row of rows) {
     if (row === merchant) continue;
+    // header/footer struk (alamat, telp, Kasir:, No Trx:, "Supported by ...") tidak pernah jadi item
+    if (KW.header.test(row) && !(KW.total.test(row) || KW.subtotal.test(row) || KW.tax.test(row) || KW.service.test(row) || KW.discount.test(row) || KW.payment.test(row))) {
+      pendingName = null;
+      qtyLine = false;
+      continue;
+    }
     const sp = splitPrice(row);
 
     if (sp) {
+      // "2 x 12,000" saja di satu baris, total ada di baris berikutnya
+      const qtyOnly = sp.left.match(/^(\d{1,3})\s*[x×*]$/i);
+      if (qtyOnly) {
+        if (pendingName) { items.push(mk(pendingName, +qtyOnly[1], sp.price * +qtyOnly[1])); pendingName = null; qtyLine = true; }
+        continue;
+      }
+      if (qtyLine && !/[a-z]/i.test(sp.left)) {
+        // baris total untuk item sebelumnya
+        if (items.length && sp.price >= 100) items[items.length - 1].price = sp.price;
+        qtyLine = false;
+        continue;
+      }
+      qtyLine = false;
       if (KW.subtotal.test(row)) continue;
       if (KW.tax.test(row)) { tax += Math.abs(sp.price); continue; }
       if (KW.service.test(row)) { service += Math.abs(sp.price); continue; }
