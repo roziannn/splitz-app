@@ -7,16 +7,35 @@
     "scheme": "splitz",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "splash": { "backgroundColor": "#0f766e" },
+    "splash": {
+      "backgroundColor": "#0f766e"
+    },
     "android": {
       "package": "com.roziannn.splitz",
       "versionCode": 1,
-      "permissions": ["CAMERA", "REQUEST_INSTALL_PACKAGES"]
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.REQUEST_INSTALL_PACKAGES",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "plugins": [
       "expo-router",
-      ["expo-image-picker", { "cameraPermission": "Splitz memerlukan kamera untuk memindai struk belanja." }]
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Splitz memerlukan kamera untuk memindai struk belanja."
+        }
+      ]
     ],
-    "runtimeVersion": { "policy": "appVersion" }
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9bf2dfff-15d1-4187-98c2-4505760a4b2d"
+      }
+    }
   }
 }
