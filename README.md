@@ -1,36 +1,33 @@
 # Splitz — Scan Struk & Split Bill (Android / Expo)
 
-Versi mobile dari receip.tic: foto struk, AI mengekstrak item, harga, pajak, mengkategorikan pengeluaran, menyusun laporan harian, dan membagi tagihan (split bill) per orang.
-
-## Download (Android)
-
-Scan QR ini dari HP Android, atau buka link di bawahnya, lalu pasang APK-nya:
-
-<img src="docs/qr-download.svg" width="220" alt="QR download Splitz" />
-
-https://github.com/roziannn/splitz-app/releases/latest/download/Splitz.apk
-
-Setelah terpasang, buka tab **Pengaturan** untuk mengisi API key dan memakai tombol **Cek pembaruan**.
-
-## Menjalankan untuk pengembangan (Expo)
-```bash
-npm install
-npx expo start        # scan QR dengan Expo Go di Android
-```
-
-## Pengaturan
-Buka tab **Pengaturan** dan isi Anthropic API key (disimpan di SecureStore perangkat). Key dipakai untuk OCR struk via Claude vision.
+Versi mobile dari receip.tic: foto struk, teks dibaca di HP (Google ML Kit, tanpa API key), item/harga/pajak diekstrak dan dikategorikan, laporan harian, dan split bill per orang.
 
 ## Fitur
-- **Scan**: kamera/galeri → AI mengekstrak toko, tanggal, item, pajak, service, diskon, kategori
+- **Scan**: kamera/galeri → OCR di HP → toko, tanggal, item, qty, harga, pajak, service, diskon, kategori
 - **Edit**: koreksi hasil OCR, tambah/hapus item, ubah kategori
 - **Split bill**: tambah peserta, tentukan siapa makan apa (item bisa dibagi beberapa orang), pajak/service/diskon dibagi proporsional, bagikan hasil
 - **Laporan**: total per hari, per kategori (hari ini / 7 / 30 hari)
+- **Perbarui sekarang**: tombol di tab Pengaturan (OTA via EAS Update)
 - Data tersimpan lokal (AsyncStorage)
-- **Pembaruan**: tombol Cek pembaruan membaca GitHub Releases
 
-## Merilis versi baru
-1. Naikkan `version` di `app.json`, merge ke `main`.
-2. Actions → Build APK → Run workflow. APK terbit di Releases sebagai `Splitz.apk`.
+## Build APK (EAS)
+```bash
+npm install
+npx eas-cli login
+npx eas-cli build -p android --profile production
+```
+Terminal menampilkan link dan QR untuk mengunduh APK setelah build selesai.
+
+Scan struk memakai modul native, jadi **tidak jalan di Expo Go**; pakai APK hasil build.
+
+## Merilis pembaruan
+- Perubahan kode/tampilan (JavaScript saja):
+  ```bash
+  npx eas-cli update --branch production --message "deskripsi"
+  ```
+  Di HP: Pengaturan → **Perbarui sekarang**.
+- Perubahan native (library baru, `app.json`): naikkan `version` di `app.json` lalu build APK baru.
+
+Tidak ada GitHub Actions; build dan update dijalankan dari terminal.
 
 Catatan: ikon/splash belum disertakan; tambahkan `icon`, `splash.image`, dan `android.adaptiveIcon` di app.json bila diperlukan.
