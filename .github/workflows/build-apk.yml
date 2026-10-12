@@ -1,0 +1,46 @@
+name: Build APK
+
+# Jalankan manual (Actions > Build APK > Run workflow) atau push tag v*.
+# Hasilnya dirilis ke GitHub Releases dengan tag v<versi di app.json>.
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: npm install
+      - name: Set version
+        id: ver
+        run: |
+          VERSION=$(node -p "require('./app.json').expo.version")
+          # versionCode harus naik di setiap build agar APK bisa menimpa versi lama
+          node -e "const f=require('fs'),a=JSON.parse(f.readFileSync('app.json'));a.expo.android.versionCode=${{ github.run_number }};f.writeFileSync('app.json',JSON.stringify(a,null,2))"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - run: npx expo prebuild --platform android --no-install
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease -PreactNativeArchitectures=armeabi-v7a,arm64-v8a --no-daemon
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.ver.outputs.version }}"
+          cp android/app/build/outputs/apk/release/app-release.apk "Splitz-${TAG}.apk"
+          gh release delete "$TAG" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "$TAG" "Splitz-${TAG}.apk" --target "${{ github.sha }}" \
+            --title "Splitz ${TAG}" --notes "Unduh APK lalu pasang di Android. Bila sudah terpasang, pakai tombol Cek pembaruan di tab Pengaturan."
