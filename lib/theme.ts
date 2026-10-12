@@ -11,13 +11,18 @@ export const C = {
   warn: '#f59e0b',
 };
 
+// Warna kategori: tetap per kategori (tidak berubah saat filter), divalidasi untuk buta warna.
+// Urutan slot palet kategorikal; "Lainnya" memakai abu-abu netral.
 export const CAT_COLOR: Record<string, string> = {
-  Makanan: '#f97316',
-  Minuman: '#06b6d4',
-  Belanja: '#8b5cf6',
-  Transportasi: '#3b82f6',
-  Kesehatan: '#ef4444',
-  Hiburan: '#ec4899',
-  Tagihan: '#eab308',
-  Lainnya: '#64748b',
+  Makanan: '#2a78d6',
+  Minuman: '#eb6834',
+  Belanja: '#1baf7a',
+  Transportasi: '#eda100',
+  Kesehatan: '#e87ba4',
+  Hiburan: '#008300',
+  Tagihan: '#6250d6',
+  Lainnya: '#8a8a85',
 };
+
+/** Warna seri tunggal (garis tren). */
+export const SERIES = '#2a78d6';
