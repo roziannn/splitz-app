@@ -1,5 +1,7 @@
+import '../lib/crashGuard'; // harus paling atas agar kesalahan saat memuat modul lain ikut tertangkap
 import { useEffect } from 'react';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavThemeProvider, type ErrorBoundaryProps } from 'expo-router';
+import { Pressable, ScrollView, Text as RNText } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { StoreProvider } from '../lib/store';
 import { ThemeProvider, useThemeMode } from '../lib/themeContext';
@@ -45,5 +47,18 @@ export default function RootLayout() {
         <Shell />
       </StoreProvider>
     </ThemeProvider>
+  );
+}
+
+/** Layar cadangan jika ada layar yang gagal digambar: tampilkan pesannya, bukan menutup aplikasi. */
+export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
+  return (
+    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, backgroundColor: '#0e1415' }}>
+      <RNText style={{ color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 8 }}>Terjadi kesalahan</RNText>
+      <RNText style={{ color: '#cbd5d5', marginBottom: 16 }}>{String(error?.message ?? error)}</RNText>
+      <Pressable onPress={retry} style={{ backgroundColor: '#0f766e', padding: 14, borderRadius: 12, alignItems: 'center' }}>
+        <RNText style={{ color: '#fff', fontWeight: '700' }}>Coba lagi</RNText>
+      </Pressable>
+    </ScrollView>
   );
 }
