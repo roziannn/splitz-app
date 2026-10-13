@@ -37,7 +37,7 @@ interface RowProps {
   onDelete: (id: string, name: string) => void;
 }
 
-const REVEAL = 96; // lebar tombol hapus yang muncul saat digeser ke kanan
+const REVEAL = 96; // lebar tombol hapus yang muncul saat digeser ke kiri
 
 // Dibungkus memo: baris yang datanya tidak berubah tidak digambar ulang saat daftar lain berubah.
 const Row = memo(function Row({ r, onEdit, onSplit, onDelete }: RowProps) {
@@ -45,18 +45,18 @@ const Row = memo(function Row({ r, onEdit, onSplit, onDelete }: RowProps) {
   const x = useRef(new Animated.Value(0)).current;
   const open = useRef(false);
   const settle = useCallback((to: number) => {
-    open.current = to > 0;
-    Animated.spring(x, { toValue: to, useNativeDriver: false, bounciness: 0, speed: 20 }).start();
+    open.current = to < 0;
+    Animated.spring(x, { toValue: to, useNativeDriver: true, bounciness: 0, speed: 24 }).start();
   }, [x]);
   const startX = useRef(0);
-  // Geser mendatar ke kanan membuka tombol hapus; geser balik atau ketuk baris untuk menutup.
+  // Geser mendatar ke kiri membuka tombol hapus; geser balik atau ketuk baris untuk menutup.
   const pan = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
       onPanResponderGrant: () => { x.stopAnimation((v) => { startX.current = v; }); },
-      onPanResponderMove: (_, g) => x.setValue(Math.max(0, Math.min(REVEAL, startX.current + g.dx))),
-      onPanResponderRelease: (_, g) => settle(startX.current + g.dx > REVEAL / 2 ? REVEAL : 0),
-      onPanResponderTerminate: () => settle(open.current ? REVEAL : 0),
+      onPanResponderMove: (_, g) => x.setValue(Math.min(0, Math.max(-REVEAL, startX.current + g.dx))),
+      onPanResponderRelease: (_, g) => settle(startX.current + g.dx < -REVEAL / 2 ? -REVEAL : 0),
+      onPanResponderTerminate: () => settle(open.current ? -REVEAL : 0),
     }),
   ).current;
 
@@ -66,19 +66,24 @@ const Row = memo(function Row({ r, onEdit, onSplit, onDelete }: RowProps) {
     onDelete(r.id, r.merchant);
   };
 
+  // Tombol merah baru terlihat setelah baris mulai bergeser, jadi tidak tembus saat pindah menu.
+  const actionOpacity = x.interpolate({ inputRange: [-12, 0], outputRange: [1, 0], extrapolate: 'clamp' });
+
   return (
     <View style={{ marginBottom: 10 }}>
-      <Pressable
-        onPress={del}
-        accessibilityLabel="Hapus struk"
-        style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: REVEAL - 8, borderRadius: 14, backgroundColor: C.danger, alignItems: 'center', justifyContent: 'center' }}>
-        <Ionicons name="trash-outline" size={22} color="#fff" />
-        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700', marginTop: 2 }}>Hapus</Text>
-      </Pressable>
+      <Animated.View style={{ position: 'absolute', right: 0, top: 0, bottom: 0, width: REVEAL - 8, opacity: actionOpacity }}>
+        <Pressable
+          onPress={del}
+          accessibilityLabel="Hapus struk"
+          style={{ flex: 1, borderRadius: 14, backgroundColor: C.danger, alignItems: 'center', justifyContent: 'center' }}>
+          <Ionicons name="trash-outline" size={22} color="#fff" />
+          <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700', marginTop: 2 }}>Hapus</Text>
+        </Pressable>
+      </Animated.View>
       <Animated.View style={{ transform: [{ translateX: x }] }} {...pan.panHandlers}>
         <Pressable
           onPress={press}
-          style={({ pressed }) => ({ backgroundColor: C.card, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: C.border, flexDirection: 'row', justifyContent: 'space-between', gap: 12, opacity: pressed ? 0.9 : 1 })}>
+          style={() => ({ backgroundColor: C.card, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: C.border, flexDirection: 'row', justifyContent: 'space-between', gap: 12 })}>
           {r.image ? (
             <View style={{ width: 52, height: 52 }}>
               <Image source={{ uri: imagePath(r.image) }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: C.border }} />
