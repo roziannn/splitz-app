@@ -3,7 +3,7 @@
   "build": {
     "preview": {
       "distribution": "internal",
-      "channel": "preview",
+      "channel": "production",
       "android": { "buildType": "apk" },
       "autoIncrement": true
     },
