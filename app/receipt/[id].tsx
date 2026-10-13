@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Image, Modal, Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { DateField } from '../../components/DateField';
-import { ItemCard, AddItem } from '../../components/ItemEditor';
+import { ItemList } from '../../components/ItemEditor';
 import { MoneyField } from '../../components/MoneyField';
 import { Button, Card, Field } from '../../components/ui';
 import { rupiah } from '../../lib/format';
@@ -104,13 +104,12 @@ export default function ReceiptDetail() {
         <Text style={{ fontSize: 16, fontWeight: '800', color: C.text }}>Item ({r.items.length})</Text>
         <Text style={{ color: C.muted }}>Subtotal {rupiah(itemsSubtotal(r))}</Text>
       </View>
-      {r.items.length === 0 ? (
-        <Text style={{ color: C.muted, marginBottom: 12 }}>Belum ada item. Tambahkan di bawah.</Text>
-      ) : null}
-      {r.items.map((i) => (
-        <ItemCard key={i.id} item={i} onChange={(patch) => setItem(i.id, patch)} onDelete={() => deleteItem(i)} />
-      ))}
-      <AddItem onAdd={(item) => { animate(); save({ items: [...r.items, item] }); }} />
+      <ItemList
+        items={r.items}
+        onChange={setItem}
+        onDelete={deleteItem}
+        onAdd={(item) => { animate(); save({ items: [...r.items, item] }); }}
+      />
 
       <Card>
         <MoneyField label="Pajak" value={r.tax} onChange={(n) => save({ tax: n })} />

@@ -3,8 +3,10 @@ import { ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { ChartBoundary, Donut, LineChart } from '../../components/charts';
 import { Button, Card, Chip, Empty } from '../../components/ui';
+import { buildFamilyReport } from '../../lib/familyReport';
+import { useFamily } from '../../lib/family';
 import { prettyDate, rupiah } from '../../lib/format';
-import { buildReport, Range } from '../../lib/report';
+import { buildReport, Range, rangeBounds } from '../../lib/report';
 import { useStore } from '../../lib/store';
 import { useColors } from '../../lib/themeContext';
 
@@ -35,6 +37,12 @@ export default function Dashboard() {
   const receipts = useDeferredValue(live);
   const [range, setRange] = useState<Range>('week');
   const rep = useMemo(() => buildReport(receipts, range), [receipts, range]);
+  const family = useFamily();
+  const fam = useMemo(() => {
+    if (family.mode !== 'keluarga' || !family.members.length) return null;
+    const { from, to } = rangeBounds(receipts, range);
+    return buildFamilyReport(receipts, family.members, from, to);
+  }, [receipts, range, family]);
   const meta = RANGES.find((r) => r.key === range)!;
   const top = rep.byCat[0];
   // Untuk "Hari ini" grafik memuat 7 hari, tetapi daftar harian hanya hari ini.
@@ -78,7 +86,7 @@ export default function Dashboard() {
       ) : (
         <>
           {rep.total <= 0 ? (
-            <Card style={{ borderColor: C.warn }}>
+            <Card>
               <Text style={{ fontWeight: '700', marginBottom: 2 }}>Total masih Rp0</Text>
               <Text style={{ color: C.muted }}>Ada {rep.count} struk, tetapi harga itemnya masih kosong. Buka Riwayat, ketuk struknya, lalu isi harga item.</Text>
             </Card>
@@ -104,6 +112,43 @@ export default function Dashboard() {
               <Donut slices={rep.byCat} total={rep.total} />
             </ChartBoundary>
           </Card>
+
+          {fam ? (
+            <Card>
+              <Text style={{ fontWeight: '700', marginBottom: 2 }}>Per anggota</Text>
+              <Text style={{ color: C.muted, fontSize: 12, marginBottom: 8 }}>Bagian tiap orang dari split bill · {meta.long}</Text>
+              {fam.total <= 0 ? (
+                <Text style={{ color: C.muted }}>Belum ada split bill pada periode ini.</Text>
+              ) : (
+                <>
+                  {fam.perPerson.map((p) => (
+                    <View key={p.id} style={{ paddingVertical: 5 }}>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text>{p.name}</Text>
+                        <Text style={{ fontWeight: '700' }}>{rupiah(p.amount)}</Text>
+                      </View>
+                      <View style={{ height: 4, borderRadius: 2, backgroundColor: C.border, marginTop: 4 }}>
+                        <View style={{ height: 4, borderRadius: 2, backgroundColor: C.primary, width: `${Math.max(2, (p.amount / fam.total) * 100)}%` }} />
+                      </View>
+                    </View>
+                  ))}
+                  <Text style={{ fontWeight: '700', marginTop: 12, marginBottom: 4 }}>Per hari</Text>
+                  {fam.days.slice(0, 14).map((d) => (
+                    <View key={d.date} style={{ paddingVertical: 6, borderTopWidth: 1, borderTopColor: C.border }}>
+                      <Text style={{ color: C.muted, fontSize: 12, marginBottom: 2 }}>{prettyDate(d.date)}</Text>
+                      {d.people.map((p) => (
+                        <View key={p.id} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                          <Text>{p.name}</Text>
+                          <Text>{rupiah(p.amount)}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  ))}
+                  {fam.days.length > 14 ? <Text style={{ color: C.muted, fontSize: 12, marginTop: 6 }}>Menampilkan 14 hari terbaru.</Text> : null}
+                </>
+              )}
+            </Card>
+          ) : null}
 
           <Card>
             <Text style={{ fontWeight: '700', marginBottom: 6 }}>Laporan harian</Text>
