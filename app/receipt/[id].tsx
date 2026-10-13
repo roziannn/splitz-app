@@ -14,6 +14,7 @@ import { canSplit, editHref } from '../../lib/routes';
 import { grandTotal, itemsSubtotal } from '../../lib/split';
 import { useStore } from '../../lib/store';
 import { useColors } from '../../lib/themeContext';
+import { toast } from '../../lib/toast';
 import { Item, Receipt } from '../../lib/types';
 
 export default function ReceiptDetail() {
@@ -57,13 +58,14 @@ export default function ReceiptDetail() {
 
   const pickPhoto = async (camera: boolean) => {
     const perm = camera ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return Alert.alert('Izin ditolak', 'Berikan izin akses di pengaturan perangkat.');
+    if (!perm.granted) return toast.error('Izin ditolak. Berikan izin di pengaturan perangkat.');
     const res = await (camera ? ImagePicker.launchCameraAsync : ImagePicker.launchImageLibraryAsync)({ mediaTypes: ['images'], quality: 0.9 });
     if (res.canceled) return;
     const name = await saveReceiptImage(res.assets[0].uri, r.id);
-    if (!name) return Alert.alert('Gagal', 'Foto tidak bisa disimpan.');
+    if (!name) return toast.error('Foto tidak bisa disimpan.');
     await deleteReceiptImage(r.image);
     save({ image: name });
+    toast.success('Foto disimpan');
   };
   const choosePhoto = () =>
     Alert.alert('Foto struk', undefined, [
@@ -74,7 +76,7 @@ export default function ReceiptDetail() {
   const removePhoto = () =>
     Alert.alert('Hapus foto?', 'Data struk tetap tersimpan.', [
       { text: 'Batal', style: 'cancel' },
-      { text: 'Hapus', style: 'destructive', onPress: async () => { await deleteReceiptImage(r.image); save({ image: undefined }); } },
+      { text: 'Hapus', style: 'destructive', onPress: async () => { await deleteReceiptImage(r.image); save({ image: undefined }); toast.info('Foto dihapus'); } },
     ]);
 
   return (
@@ -132,7 +134,7 @@ export default function ReceiptDetail() {
         onPress={() =>
           Alert.alert('Hapus struk?', 'Tindakan ini tidak bisa dibatalkan.', [
             { text: 'Batal', style: 'cancel' },
-            { text: 'Hapus', style: 'destructive', onPress: () => { remove(r.id); router.back(); } },
+            { text: 'Hapus', style: 'destructive', onPress: () => { remove(r.id); toast.success('Struk dihapus'); router.back(); } },
           ])
         }
       />

@@ -8,6 +8,7 @@ import { localIso } from '../../lib/dates';
 import { saveBackupToFolder, shareBackup } from '../../lib/backupIO';
 import { useStore } from '../../lib/store';
 import { ThemeMode, useColors, useThemeMode } from '../../lib/themeContext';
+import { toast } from '../../lib/toast';
 import { applyOtaUpdate, checkForUpdate, currentVersion, downloadAndInstallApk } from '../../lib/update';
 
 const MODES: { key: ThemeMode; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
@@ -42,7 +43,7 @@ export default function Settings() {
       const info = await checkForUpdate();
       if (!info.available || !info.apkUrl) {
         setStatus('');
-        return Alert.alert('Sudah terbaru', `Anda memakai versi ${currentVersion()}.`);
+        return toast.info(`Sudah versi terbaru (${currentVersion()})`);
       }
       const go = await new Promise<boolean>((resolve) =>
         Alert.alert(`Versi ${info.latest} tersedia`, info.notes || 'Unduh dan pasang sekarang?', [
@@ -55,7 +56,7 @@ export default function Settings() {
       setStatus('Tekan "Pasang" pada layar yang muncul.');
     } catch (e: any) {
       setStatus('');
-      Alert.alert('Gagal memperbarui', e.message);
+      toast.error(`Gagal memperbarui: ${e?.message ?? 'coba lagi'}`);
     } finally {
       setBusy(false);
     }
@@ -63,22 +64,24 @@ export default function Settings() {
 
   const add = () => {
     const err = addMember(memberName);
-    if (err) return Alert.alert('Tidak bisa menambah', err);
+    if (err) return toast.error(err);
+    toast.success(`${memberName.trim()} ditambahkan`);
     setMemberName('');
   };
 
   const exportExcel = async (mode: 'folder' | 'share') => {
-    if (!receipts.length) return Alert.alert('Belum ada data', 'Catat pengeluaran dulu sebelum membuat backup.');
+    if (!receipts.length) return toast.error('Belum ada data untuk dibackup.');
     setExporting(mode);
     try {
       if (mode === 'share') {
         await shareBackup(receipts, localIso());
+        toast.success('Backup siap dibagikan');
       } else {
         const name = await saveBackupToFolder(receipts, localIso());
-        if (name) Alert.alert('Backup tersimpan', `${name}\n\n${receipts.length} catatan disimpan di folder yang Anda pilih.`);
+        if (name) toast.success(`Backup tersimpan: ${name}`);
       }
     } catch (e: any) {
-      Alert.alert('Backup gagal', e?.message ?? 'Coba lagi.');
+      toast.error(`Backup gagal: ${e?.message ?? 'coba lagi'}`);
     } finally {
       setExporting(null);
     }
@@ -113,7 +116,7 @@ export default function Settings() {
             return (
               <Pressable
                 key={m.key}
-                onPress={() => setAppMode(m.key)}
+                onPress={() => { setAppMode(m.key); toast.info(`Mode ${m.label}`); }}
                 accessibilityRole="radio"
                 accessibilityState={{ selected: active }}
                 style={({ pressed }) => ({ flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: 14, borderWidth: 1, borderColor: active ? C.primary : C.border, backgroundColor: active ? C.primary : 'transparent', opacity: pressed ? 0.85 : 1 })}>
@@ -128,7 +131,7 @@ export default function Settings() {
             <Text style={{ color: C.muted, fontSize: 12, marginBottom: 8 }}>Anggota keluarga muncul sebagai pilihan saat split bill, dan total per orang per hari tampil di Laporan.</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
               {family.members.map((m) => (
-                <Chip key={m.id} label={`${m.name}  ✕`} active onPress={() => removeMember(m.id)} />
+                <Chip key={m.id} label={`${m.name}  ✕`} active onPress={() => { removeMember(m.id); toast.info(`${m.name} dihapus`); }} />
               ))}
             </View>
             <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start', marginTop: 6 }}>
