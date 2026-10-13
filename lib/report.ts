@@ -37,11 +37,11 @@ const daysBetween = (a: string, b: string) => {
   return Math.round((t(b) - t(a)) / 86400000);
 };
 
-export function buildReport(receipts: Receipt[], range: Range, todayIso: string = localIso()): Report {
+/** Batas tanggal [from, to] untuk sebuah periode. */
+export function rangeBounds(receipts: Receipt[], range: Range, todayIso: string = localIso()): { from: string; to: string } {
   const dated = receipts.filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date ?? ''));
   const earliest = dated.reduce<string | null>((m, r) => (m === null || r.date < m ? r.date : m), null);
   const latest = dated.reduce<string | null>((m, r) => (m === null || r.date > m ? r.date : m), null);
-
   // Struk bertanggal setelah hari ini (mis. tanggal salah baca) tetap dihitung pada "Semua".
   const to = range === 'all' && latest && latest > todayIso ? latest : todayIso;
   let from: string;
@@ -50,6 +50,12 @@ export function buildReport(receipts: Receipt[], range: Range, todayIso: string 
   else if (range === 'month') from = addDays(todayIso, -29);
   else if (range === 'mtd') from = todayIso.slice(0, 8) + '01';
   else from = earliest && earliest < todayIso ? earliest : todayIso;
+  return { from, to };
+}
+
+export function buildReport(receipts: Receipt[], range: Range, todayIso: string = localIso()): Report {
+  const dated = receipts.filter((r) => /^\d{4}-\d{2}-\d{2}$/.test(r.date ?? ''));
+  const { from, to } = rangeBounds(receipts, range, todayIso);
   const days = daysBetween(from, to) + 1;
 
   const hasPrev = range !== 'all';
