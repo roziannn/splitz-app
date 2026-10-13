@@ -11,6 +11,7 @@ import { localIso } from '../../lib/dates';
 import { prettyDate, rupiah, uid } from '../../lib/format';
 import { useStore } from '../../lib/store';
 import { useColors } from '../../lib/themeContext';
+import { toast } from '../../lib/toast';
 
 const ROWS = [
   ['7', '8', '9', 'DATE'],
@@ -50,6 +51,7 @@ export default function Manual() {
       createdAt: Date.now(),
       source: 'manual',
     });
+    toast.success('Pengeluaran tersimpan');
     if (split) router.replace(`/receipt/split/${id}`); // lanjut pilih siapa membayar apa
     else router.back();
   };
@@ -78,7 +80,7 @@ export default function Manual() {
                   if (!isCustom(c.name)) return;
                   Alert.alert(`Hapus kategori "${c.name}"?`, 'Catatan yang sudah ada tetap memakai nama ini.', [
                     { text: 'Batal', style: 'cancel' },
-                    { text: 'Hapus', style: 'destructive', onPress: () => { removeCategory(c.name); if (category === c.name) setCategory(null); } },
+                    { text: 'Hapus', style: 'destructive', onPress: () => { removeCategory(c.name); toast.info('Kategori dihapus'); if (category === c.name) setCategory(null); } },
                   ]);
                 }}
                 style={{ width: '25%', alignItems: 'center', paddingVertical: 8 }}>

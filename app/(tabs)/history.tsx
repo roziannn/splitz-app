@@ -10,6 +10,7 @@ import { imagePath } from '../../lib/images';
 import { editHref } from '../../lib/routes';
 import { useStore } from '../../lib/store';
 import { useColors } from '../../lib/themeContext';
+import { toast } from '../../lib/toast';
 import { Receipt } from '../../lib/types';
 
 const PRESETS = ['Semua', 'Hari ini', '7 hari', '30 hari', 'Bulan ini'] as const;
@@ -151,7 +152,7 @@ export default function History() {
     (id: string, name: string) =>
       Alert.alert('Hapus riwayat?', `${name} akan dihapus dari riwayat.`, [
         { text: 'Batal', style: 'cancel' },
-        { text: 'Hapus', style: 'destructive', onPress: () => remove(id) },
+        { text: 'Hapus', style: 'destructive', onPress: () => { remove(id); toast.success('Riwayat dihapus'); } },
       ]),
     [remove],
   );
