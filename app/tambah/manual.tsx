@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { AddCategorySheet } from '../../components/AddCategorySheet';
 import { DateField } from '../../components/DateField';
 import { evaluate, display, hasOperator, press } from '../../lib/calc';
-import { MANUAL_CATEGORIES } from '../../lib/categories';
+import { isCustom, removeCategory, useAllCategories } from '../../lib/customCategories';
 import { localIso } from '../../lib/dates';
 import { prettyDate, rupiah, uid } from '../../lib/format';
 import { useStore } from '../../lib/store';
@@ -24,6 +25,8 @@ export default function Manual() {
   const [expr, setExpr] = useState('');
   const [note, setNote] = useState('');
   const [date, setDate] = useState(localIso());
+  const categories = useAllCategories();
+  const [adding, setAdding] = useState(false);
 
   const calculating = hasOperator(expr);
   const amount = evaluate(expr);
@@ -57,12 +60,23 @@ export default function Manual() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={{ padding: 12, paddingBottom: 24 }}>
+      <View style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={{ padding: 12, paddingBottom: 96 }}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-          {MANUAL_CATEGORIES.map((c) => {
+          {categories.map((c) => {
             const active = category === c.name;
             return (
-              <Pressable key={c.name} onPress={() => setCategory(c.name)} style={{ width: '25%', alignItems: 'center', paddingVertical: 8 }}>
+              <Pressable
+                key={c.name}
+                onPress={() => setCategory(c.name)}
+                onLongPress={() => {
+                  if (!isCustom(c.name)) return;
+                  Alert.alert(`Hapus kategori "${c.name}"?`, 'Catatan yang sudah ada tetap memakai nama ini.', [
+                    { text: 'Batal', style: 'cancel' },
+                    { text: 'Hapus', style: 'destructive', onPress: () => { removeCategory(c.name); if (category === c.name) setCategory(null); } },
+                  ]);
+                }}
+                style={{ width: '25%', alignItems: 'center', paddingVertical: 8 }}>
                 <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: active ? c.color : '#ececef', alignItems: 'center', justifyContent: 'center' }}>
                   <Ionicons name={c.icon} size={28} color={active ? '#fff' : '#3f3f46'} />
                 </View>
@@ -72,6 +86,16 @@ export default function Manual() {
           })}
         </View>
       </ScrollView>
+
+      <Pressable
+        onPress={() => setAdding(true)}
+        accessibilityLabel="Tambah kategori"
+        style={({ pressed }) => ({ position: 'absolute', right: 16, bottom: 16, width: 56, height: 56, borderRadius: 28, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', elevation: 6, opacity: pressed ? 0.85 : 1 })}>
+        <Ionicons name="add" size={32} color="#fff" />
+      </Pressable>
+      </View>
+
+      <AddCategorySheet visible={adding} onClose={() => setAdding(false)} onAdded={(name) => setCategory(name)} />
 
       {category ? (
         <View style={{ backgroundColor: '#e9eaee', padding: 8, paddingBottom: 14 }}>

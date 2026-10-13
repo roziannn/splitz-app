@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { CATEGORIES, Receipt } from './types';
+import { Receipt } from './types';
 import { computeSplit } from './split';
 
 const SOURCE_LABEL: Record<string, string> = { scan: 'Scan', manual: 'Manual', bensin: 'Bensin' };
@@ -64,7 +64,8 @@ export function buildWorkbook(receipts: Receipt[]): XLSX.WorkBook {
   }
   const grand = list.reduce((s, r) => s + total(r), 0);
   const H5 = ['Kategori', 'Total', 'Persen'];
-  const kategori = [...CATEGORIES]
+  // Semua kategori yang ada di data (termasuk kategori input manual dan buatan sendiri), bukan hanya 8 bawaan scan.
+  const kategori = Object.keys(perCat)
     .filter((c) => perCat[c])
     .map((c) => ({ 'Kategori': c, 'Total': Math.round(perCat[c]), 'Persen': grand > 0 ? perCat[c] / grand : 0 }))
     .sort((a, b) => b['Total'] - a['Total']);
