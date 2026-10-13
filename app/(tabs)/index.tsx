@@ -1,14 +1,18 @@
+import { useRouter } from 'expo-router';
 import { useDeferredValue, useMemo, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { ChartBoundary, Donut, LineChart } from '../../components/charts';
 import { Button, Card, Chip, Empty } from '../../components/ui';
+import { animate } from '../../lib/anim';
+import { Closing, reopenBook, useClosings } from '../../lib/closing';
 import { buildFamilyReport } from '../../lib/familyReport';
 import { useFamily } from '../../lib/family';
 import { prettyDate, rupiah } from '../../lib/format';
 import { buildReport, Range, rangeBounds } from '../../lib/report';
 import { useStore } from '../../lib/store';
 import { useColors } from '../../lib/themeContext';
+import { toast } from '../../lib/toast';
 
 const RANGES: { key: Range; label: string; long: string }[] = [
   { key: 'day', label: 'Hari ini', long: 'hari ini' },
@@ -31,7 +35,51 @@ function Tile({ label, value, sub, subColor }: { label: string; value: string; s
   );
 }
 
+/** Satu periode yang sudah ditutup: ketuk untuk melihat ringkasannya, atau buka kembali. */
+function ClosedRow({ c }: { c: Closing }) {
+  const C = useColors();
+  const [open, setOpen] = useState(false);
+  const reopen = () =>
+    Alert.alert('Buka kembali?', `Catatan ${c.label} bisa diubah dan dihapus lagi.`, [
+      { text: 'Batal', style: 'cancel' },
+      { text: 'Buka kembali', onPress: () => { reopenBook(c.id); toast.info(`Buku ${c.label} dibuka kembali`); } },
+    ]);
+  return (
+    <View style={{ borderTopWidth: 1, borderTopColor: C.border, paddingVertical: 10 }}>
+      <Pressable onPress={() => { animate(); setOpen((o) => !o); }} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontWeight: '700' }}>{c.label}</Text>
+          <Text style={{ color: C.muted, fontSize: 12 }}>{prettyDate(c.from)} – {prettyDate(c.to)} · {c.count} catatan</Text>
+        </View>
+        <Text style={{ fontWeight: '800', color: C.accent }}>{rupiah(c.total)}</Text>
+      </Pressable>
+      {open ? (
+        <View style={{ marginTop: 8 }}>
+          {c.byCat.slice(0, 6).map((k) => (
+            <View key={k.name} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ color: C.muted }}>{k.name}</Text>
+              <Text>{rupiah(k.value)}</Text>
+            </View>
+          ))}
+          {c.byPerson.length ? <Text style={{ fontWeight: '700', marginTop: 8 }}>Per anggota</Text> : null}
+          {c.byPerson.map((p) => (
+            <View key={p.name} style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Text style={{ color: C.muted }}>{p.name}</Text>
+              <Text>{rupiah(p.amount)}</Text>
+            </View>
+          ))}
+          <Pressable onPress={reopen} hitSlop={8} style={{ alignSelf: 'flex-start', marginTop: 10 }}>
+            <Text style={{ color: C.accent, fontWeight: '600' }}>Buka kembali</Text>
+          </Pressable>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
 export default function Dashboard() {
+  const router = useRouter();
+  const closings = useClosings();
   const C = useColors();
   const { receipts: live } = useStore();
   const receipts = useDeferredValue(live);
@@ -69,7 +117,7 @@ export default function Dashboard() {
 
       <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
         <Tile label="Jumlah struk" value={String(rep.count)} />
-        <Tile label="Rata-rata / hari" value={rupiah(rep.avgPerDay)} />
+        {range !== 'mtd' ? <Tile label="Rata-rata / hari" value={rupiah(rep.avgPerDay)} /> : null}
         <Tile label="Terbesar" value={top ? top.name : '-'} sub={top ? `${top.pct.toFixed(0)}% total` : undefined} />
       </View>
 
@@ -161,6 +209,20 @@ export default function Dashboard() {
           </Card>
         </>
       )}
+
+      {range === 'mtd' ? (
+        <Card>
+          <Text style={{ fontWeight: '700', marginBottom: 2 }}>Tutup buku</Text>
+          <Text style={{ color: C.muted, fontSize: 12, marginBottom: 10 }}>Pilih awal dan akhir periode, lalu kunci catatannya. Ringkasannya tersimpan di sini.</Text>
+          <Button title="Tutup buku…" kind="ghost" onPress={() => router.push('/tutup-buku')} />
+          {closings.length ? (
+            <View style={{ marginTop: 12 }}>
+              <Text style={{ color: C.muted, fontSize: 12, marginBottom: 2 }}>Buku yang sudah ditutup</Text>
+              {closings.map((c) => <ClosedRow key={c.id} c={c} />)}
+            </View>
+          ) : null}
+        </Card>
+      ) : null}
     </ScrollView>
   );
 }

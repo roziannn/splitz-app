@@ -32,6 +32,7 @@ function Shell() {
         <Stack.Screen name="tambah/scan" options={{ title: 'Scan Struk' }} />
         <Stack.Screen name="tambah/manual" options={{ title: 'Input Manual' }} />
         <Stack.Screen name="tambah/bensin" options={{ title: 'Catat Bensin' }} />
+        <Stack.Screen name="tutup-buku" options={{ title: 'Tutup Buku' }} />
         <Stack.Screen name="receipt/[id]" options={{ title: 'Detail Struk' }} />
         <Stack.Screen name="receipt/split/[id]" options={{ title: 'Split Bill' }} />
       </Stack>
