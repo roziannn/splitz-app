@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { Text } from './Text';
 import { addCategory, MAX_NAME } from '../lib/customCategories';
+import { toast } from '../lib/toast';
 import { COLOR_CHOICES, ICON_CHOICES, IconName } from '../lib/iconChoices';
 import { useColors } from '../lib/themeContext';
 
@@ -29,6 +30,7 @@ export function AddCategorySheet({ visible, onClose, onAdded }: Props) {
     const err = addCategory({ name, icon, color });
     if (err) return setError(err);
     onAdded(name.trim());
+    toast.success(`Kategori "${name.trim()}" ditambahkan`);
     close();
   };
 

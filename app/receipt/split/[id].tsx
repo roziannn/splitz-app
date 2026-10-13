@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, Share, View } from 'react-native';
+import { ScrollView, Share, View } from 'react-native';
 import { Text } from '../../../components/Text';
 import { Button, Card, Chip, Field } from '../../../components/ui';
 import { useFamily } from '../../../lib/family';
@@ -8,6 +8,7 @@ import { prettyDate, rupiah, uid } from '../../../lib/format';
 import { computeSplit } from '../../../lib/split';
 import { useStore } from '../../../lib/store';
 import { useColors } from '../../../lib/themeContext';
+import { toast } from '../../../lib/toast';
 
 export default function Split() {
   const C = useColors();
@@ -53,12 +54,10 @@ export default function Split() {
     setSaving(true);
     try {
       await flush();
-      Alert.alert('Tersimpan', 'Split bill disimpan di Riwayat.', [
-        { text: 'Tetap di sini', style: 'cancel' },
-        { text: 'Lihat Riwayat', onPress: () => router.navigate('/history') },
-      ]);
+      toast.success('Split bill tersimpan');
+      router.navigate('/history');
     } catch {
-      Alert.alert('Gagal menyimpan', 'Coba lagi.');
+      toast.error('Gagal menyimpan. Coba lagi.');
     } finally {
       setSaving(false);
     }

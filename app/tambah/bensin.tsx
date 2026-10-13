@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { DateField } from '../../components/DateField';
 import { MoneyField } from '../../components/MoneyField';
@@ -10,6 +10,7 @@ import { FUEL_TYPES, fmtLiters, previousFill, STATIONS } from '../../lib/fuel';
 import { uid } from '../../lib/format';
 import { useStore } from '../../lib/store';
 import { useColors } from '../../lib/themeContext';
+import { toast } from '../../lib/toast';
 import { Receipt } from '../../lib/types';
 
 export default function Bensin() {
@@ -32,7 +33,7 @@ export default function Bensin() {
   const distance = prev?.fuel?.odometer && odoNum > prev.fuel.odometer ? odoNum - prev.fuel.odometer : 0;
 
   const save = () => {
-    if (totalNum <= 0) return Alert.alert('Total belum diisi', 'Isi total bayar (nominal yang dibayar).');
+    if (totalNum <= 0) return toast.error('Isi total bayar dulu.');
     const name = type.trim() || 'BBM';
     const r: Receipt = {
       id: existing?.id ?? uid(),
@@ -50,6 +51,7 @@ export default function Bensin() {
       fuel: { type: name, liters: litersNum, pricePerLiter: priceNum, ...(odoNum > 0 ? { odometer: odoNum } : {}) },
     };
     upsert(r);
+    toast.success(existing ? 'Perubahan disimpan' : 'Catatan bensin tersimpan');
     router.back();
   };
 

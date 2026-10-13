@@ -2,6 +2,7 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavThemeProvider } fro
 import { StatusBar } from 'expo-status-bar';
 import { StoreProvider } from '../lib/store';
 import { ThemeProvider, useThemeMode } from '../lib/themeContext';
+import { ToastHost } from '../lib/toast';
 
 function Shell() {
   const { scheme, colors: C } = useThemeMode();
@@ -25,6 +26,7 @@ function Shell() {
         <Stack.Screen name="receipt/[id]" options={{ title: 'Detail Struk' }} />
         <Stack.Screen name="receipt/split/[id]" options={{ title: 'Split Bill' }} />
       </Stack>
+      <ToastHost />
     </NavThemeProvider>
   );
 }
