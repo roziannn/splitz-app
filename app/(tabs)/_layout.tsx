@@ -18,7 +18,7 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: C.muted,
         tabBarStyle: { backgroundColor: C.card, borderTopColor: C.border },
         sceneStyle: { backgroundColor: C.bg },
-        animation: 'fade',
+        animation: 'none', // header tiap tab ikut berpindah; transisi fade membuatnya berkedip putih
       }}>
       <Tabs.Screen name="index" options={{ title: 'Laporan', tabBarIcon: icon('stats-chart') }} />
       <Tabs.Screen name="catat" options={{ title: 'Catat', tabBarIcon: icon('add-circle') }} />

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { StoreProvider } from '../lib/store';
@@ -6,6 +7,12 @@ import { ToastHost } from '../lib/toast';
 
 function Shell() {
   const { scheme, colors: C } = useThemeMode();
+  // Warna jendela di belakang layar ikut tema, supaya tidak ada kilatan putih saat transisi.
+  useEffect(() => {
+    try {
+      require('expo-system-ui').setBackgroundColorAsync(C.bg).catch(() => {});
+    } catch {}
+  }, [C.bg]);
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
   // Header, latar, dan modal bawaan navigasi ikut mode terang/gelap.
   const navTheme = { ...base, colors: { ...base.colors, background: C.bg, card: C.card, text: C.text, border: C.border, primary: C.accent } };
