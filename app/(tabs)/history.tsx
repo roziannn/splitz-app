@@ -7,6 +7,7 @@ import { Text } from '../../components/Text';
 import { Chip, Empty } from '../../components/ui';
 import { prettyDate, rupiah } from '../../lib/format';
 import { imagePath } from '../../lib/images';
+import { isClosedDate, useClosings } from '../../lib/closing';
 import { editHref } from '../../lib/routes';
 import { useStore } from '../../lib/store';
 import { useColors } from '../../lib/themeContext';
@@ -35,13 +36,14 @@ interface RowProps {
   r: Receipt;
   onEdit: (r: Receipt) => void;
   onSplit: (id: string) => void;
-  onDelete: (id: string, name: string) => void;
+  onDelete: (id: string, name: string, date: string) => void;
+  locked: boolean;
 }
 
 const REVEAL = 96; // lebar tombol hapus yang muncul saat digeser ke kiri
 
 // Dibungkus memo: baris yang datanya tidak berubah tidak digambar ulang saat daftar lain berubah.
-const Row = memo(function Row({ r, onEdit, onSplit, onDelete }: RowProps) {
+const Row = memo(function Row({ r, onEdit, onSplit, onDelete, locked }: RowProps) {
   const C = useColors();
   const x = useRef(new Animated.Value(0)).current;
   const open = useRef(false);
@@ -64,7 +66,7 @@ const Row = memo(function Row({ r, onEdit, onSplit, onDelete }: RowProps) {
   const press = () => (open.current ? settle(0) : onEdit(r));
   const del = () => {
     settle(0);
-    onDelete(r.id, r.merchant);
+    onDelete(r.id, r.merchant, r.date);
   };
 
   // Tombol merah baru terlihat setelah baris mulai bergeser, jadi tidak tembus saat pindah menu.
@@ -106,7 +108,10 @@ const Row = memo(function Row({ r, onEdit, onSplit, onDelete }: RowProps) {
             </Pressable>
           )}
           <View style={{ flex: 1 }}>
-            <Text style={{ fontWeight: '700', color: C.text }}>{r.merchant}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Text style={{ fontWeight: '700', color: C.text }}>{r.merchant}</Text>
+              {locked ? <Ionicons name="lock-closed" size={12} color={C.muted} /> : null}
+            </View>
             <Text style={{ color: C.muted, fontSize: 12 }}>{prettyDate(r.date)} · {r.items.length} item{r.people.length ? ` · split ${r.people.length} orang` : ''}</Text>
             {r.people.length ? (
               <Pressable onPress={() => onSplit(r.id)} hitSlop={6}>
@@ -136,6 +141,7 @@ export default function History() {
     set(v);
   };
   const { receipts: live, remove } = useStore();
+  const closings = useClosings();
   const receipts = useDeferredValue(live); // daftar disusun dengan prioritas rendah agar layar lain tetap mulus
   const router = useRouter();
   const sorted = useMemo(
@@ -146,15 +152,19 @@ export default function History() {
     [receipts, from, to],
   );
 
-  const onEdit = useCallback((r: Receipt) => router.push(editHref(r) as any), [router]);
+  const locked = useCallback((date: string) => isClosedDate(date, closings), [closings]);
+  const onEdit = useCallback(
+    (r: Receipt) => (locked(r.date) ? toast.error('Periode ini sudah ditutup. Buka kembali di Laporan untuk mengubah.') : router.push(editHref(r) as any)),
+    [router, locked],
+  );
   const onSplit = useCallback((id: string) => router.push(`/receipt/split/${id}`), [router]);
   const onDelete = useCallback(
-    (id: string, name: string) =>
-      Alert.alert('Hapus riwayat?', `${name} akan dihapus dari riwayat.`, [
+    (id: string, name: string, date: string) =>
+      locked(date) ? toast.error('Periode ini sudah ditutup. Buka kembali di Laporan untuk menghapus.') : Alert.alert('Hapus riwayat?', `${name} akan dihapus dari riwayat.`, [
         { text: 'Batal', style: 'cancel' },
         { text: 'Hapus', style: 'destructive', onPress: () => { remove(id); toast.success('Riwayat dihapus'); } },
       ]),
-    [remove],
+    [remove, locked],
   );
 
   return (
@@ -184,7 +194,8 @@ export default function History() {
         </View>
       }
       ListEmptyComponent={<Empty text={receipts.length ? 'Tidak ada struk di rentang tanggal ini.' : 'Belum ada struk.'} />}
-      renderItem={({ item }) => <Row r={item} onEdit={onEdit} onSplit={onSplit} onDelete={onDelete} />}
+      extraData={closings}
+      renderItem={({ item }) => <Row r={item} onEdit={onEdit} onSplit={onSplit} onDelete={onDelete} locked={locked(item.date)} />}
     />
   );
 }
