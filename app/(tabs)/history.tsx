@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { memo, useCallback, useDeferredValue, useMemo, useState } from 'react';
-import { Alert, FlatList, Image, Pressable, View } from 'react-native';
+import { memo, useCallback, useDeferredValue, useMemo, useRef, useState } from 'react';
+import { Alert, Animated, FlatList, Image, PanResponder, Pressable, View } from 'react-native';
 import { DateField, localIso } from '../../components/DateField';
 import { Text } from '../../components/Text';
 import { Chip, Empty } from '../../components/ui';
@@ -37,50 +37,81 @@ interface RowProps {
   onDelete: (id: string, name: string) => void;
 }
 
+const REVEAL = 96; // lebar tombol hapus yang muncul saat digeser ke kanan
+
 // Dibungkus memo: baris yang datanya tidak berubah tidak digambar ulang saat daftar lain berubah.
 const Row = memo(function Row({ r, onEdit, onSplit, onDelete }: RowProps) {
   const C = useColors();
+  const x = useRef(new Animated.Value(0)).current;
+  const open = useRef(false);
+  const settle = useCallback((to: number) => {
+    open.current = to > 0;
+    Animated.spring(x, { toValue: to, useNativeDriver: false, bounciness: 0, speed: 20 }).start();
+  }, [x]);
+  const startX = useRef(0);
+  // Geser mendatar ke kanan membuka tombol hapus; geser balik atau ketuk baris untuk menutup.
+  const pan = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dx) > 10 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+      onPanResponderGrant: () => { x.stopAnimation((v) => { startX.current = v; }); },
+      onPanResponderMove: (_, g) => x.setValue(Math.max(0, Math.min(REVEAL, startX.current + g.dx))),
+      onPanResponderRelease: (_, g) => settle(startX.current + g.dx > REVEAL / 2 ? REVEAL : 0),
+      onPanResponderTerminate: () => settle(open.current ? REVEAL : 0),
+    }),
+  ).current;
+
+  const press = () => (open.current ? settle(0) : onEdit(r));
+  const del = () => {
+    settle(0);
+    onDelete(r.id, r.merchant);
+  };
+
   return (
-    <Pressable
-      onPress={() => onEdit(r)}
-      onLongPress={() => onDelete(r.id, r.merchant)}
-      style={({ pressed }) => ({ backgroundColor: C.card, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: C.border, flexDirection: 'row', justifyContent: 'space-between', gap: 12, opacity: pressed ? 0.9 : 1 })}>
-      {r.image ? (
-        <View style={{ width: 52, height: 52 }}>
-          <Image source={{ uri: imagePath(r.image) }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: C.border }} />
-          <Pressable
-            onPress={() => onEdit(r)}
-            hitSlop={8}
-            accessibilityLabel="Edit struk"
-            style={{ position: 'absolute', right: -6, bottom: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: C.primary, borderWidth: 2, borderColor: C.card, alignItems: 'center', justifyContent: 'center' }}>
-            <Ionicons name="pencil" size={12} color="#fff" />
-          </Pressable>
-        </View>
-      ) : (
+    <View style={{ marginBottom: 10 }}>
+      <Pressable
+        onPress={del}
+        accessibilityLabel="Hapus struk"
+        style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: REVEAL - 8, borderRadius: 14, backgroundColor: C.danger, alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name="trash-outline" size={22} color="#fff" />
+        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700', marginTop: 2 }}>Hapus</Text>
+      </Pressable>
+      <Animated.View style={{ transform: [{ translateX: x }] }} {...pan.panHandlers}>
         <Pressable
-          onPress={() => onEdit(r)}
-          hitSlop={8}
-          accessibilityLabel="Edit struk"
-          style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name="pencil" size={18} color={C.accent} />
+          onPress={press}
+          style={({ pressed }) => ({ backgroundColor: C.card, borderRadius: 14, padding: 14, borderWidth: 1, borderColor: C.border, flexDirection: 'row', justifyContent: 'space-between', gap: 12, opacity: pressed ? 0.9 : 1 })}>
+          {r.image ? (
+            <View style={{ width: 52, height: 52 }}>
+              <Image source={{ uri: imagePath(r.image) }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: C.border }} />
+              <Pressable
+                onPress={() => onEdit(r)}
+                hitSlop={8}
+                accessibilityLabel="Edit struk"
+                style={{ position: 'absolute', right: -6, bottom: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: C.primary, borderWidth: 2, borderColor: C.card, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="pencil" size={12} color="#fff" />
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => onEdit(r)}
+              hitSlop={8}
+              accessibilityLabel="Edit struk"
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="pencil" size={18} color={C.accent} />
+            </Pressable>
+          )}
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontWeight: '700', color: C.text }}>{r.merchant}</Text>
+            <Text style={{ color: C.muted, fontSize: 12 }}>{prettyDate(r.date)} · {r.items.length} item{r.people.length ? ` · split ${r.people.length} orang` : ''}</Text>
+            {r.people.length ? (
+              <Pressable onPress={() => onSplit(r.id)} hitSlop={6}>
+                <Text style={{ color: C.accent, fontSize: 12, fontWeight: '600', marginTop: 2 }}>Lihat split bill ›</Text>
+              </Pressable>
+            ) : null}
+          </View>
+          <Text style={{ fontWeight: '800', color: C.accent }}>{rupiah(r.total)}</Text>
         </Pressable>
-      )}
-      <View style={{ flex: 1 }}>
-        <Text style={{ fontWeight: '700', color: C.text }}>{r.merchant}</Text>
-        <Text style={{ color: C.muted, fontSize: 12 }}>{prettyDate(r.date)} · {r.items.length} item{r.people.length ? ` · split ${r.people.length} orang` : ''}</Text>
-        {r.people.length ? (
-          <Pressable onPress={() => onSplit(r.id)} hitSlop={6}>
-            <Text style={{ color: C.accent, fontSize: 12, fontWeight: '600', marginTop: 2 }}>Lihat split bill ›</Text>
-          </Pressable>
-        ) : null}
-      </View>
-      <View style={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
-        <Text style={{ fontWeight: '800', color: C.accent }}>{rupiah(r.total)}</Text>
-        <Pressable onPress={() => onDelete(r.id, r.merchant)} hitSlop={10} accessibilityLabel="Hapus struk">
-          <Text style={{ color: C.danger, fontSize: 12, fontWeight: '600' }}>Hapus</Text>
-        </Pressable>
-      </View>
-    </Pressable>
+      </Animated.View>
+    </View>
   );
 });
 
