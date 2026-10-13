@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, View } from 'react-native';
+import { Text } from './Text';
 import { localIso } from '../lib/dates';
-import { C } from '../lib/theme';
+import { Palette } from '../lib/theme';
+import { useColors, useStyles } from '../lib/themeContext';
 
 export { localIso };
 
@@ -30,6 +32,8 @@ interface Props {
 }
 
 export function DateField({ label: title, value, onChange, placeholder = 'Pilih tanggal', trigger }: Props) {
+  const C = useColors();
+  const s = useStyles(styles);
   const [open, setOpen] = useState(false);
   const start = parse(value) ?? parse(localIso())!;
   const [year, setYear] = useState(start.y);
@@ -93,7 +97,7 @@ export function DateField({ label: title, value, onChange, placeholder = 'Pilih 
                   const selected = iso === value;
                   return (
                     <Pressable key={i} onPress={() => choose(iso)} style={s.cell}>
-                      <View style={[s.day, selected && { backgroundColor: C.primary }, !selected && iso === todayIso && { borderWidth: 1, borderColor: C.primary }]}>
+                      <View style={[s.day, selected && { backgroundColor: C.primary }, !selected && iso === todayIso && { borderWidth: 1, borderColor: C.accent }]}>
                         <Text style={{ color: selected ? '#fff' : C.text, fontWeight: selected ? '700' : '400' }}>{d}</Text>
                       </View>
                     </Pressable>
@@ -104,7 +108,7 @@ export function DateField({ label: title, value, onChange, placeholder = 'Pilih 
 
             <View style={[s.header, { marginTop: 8, marginBottom: 0 }]}>
               <Pressable onPress={() => choose('')} hitSlop={8}><Text style={{ color: C.danger, fontWeight: '600' }}>Hapus</Text></Pressable>
-              <Pressable onPress={() => choose(todayIso)} hitSlop={8}><Text style={{ color: C.primary, fontWeight: '600' }}>Hari ini</Text></Pressable>
+              <Pressable onPress={() => choose(todayIso)} hitSlop={8}><Text style={{ color: C.accent, fontWeight: '600' }}>Hari ini</Text></Pressable>
               <Pressable onPress={() => setOpen(false)} hitSlop={8}><Text style={{ color: C.muted, fontWeight: '600' }}>Tutup</Text></Pressable>
             </View>
           </Pressable>
@@ -114,13 +118,13 @@ export function DateField({ label: title, value, onChange, placeholder = 'Pilih 
   );
 }
 
-const s = StyleSheet.create({
+const styles = (C: Palette) => StyleSheet.create({
   label: { fontSize: 12, color: C.muted, marginBottom: 4, fontWeight: '600' },
-  input: { borderWidth: 1, borderColor: C.border, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 11, backgroundColor: '#fff', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  backdrop: { flex: 1, backgroundColor: 'rgba(15,23,42,0.45)', justifyContent: 'center', padding: 24 },
-  sheet: { backgroundColor: '#fff', borderRadius: 18, padding: 16 },
+  input: { borderWidth: 1, borderColor: C.border, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 11, backgroundColor: C.inputBg, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  backdrop: { flex: 1, backgroundColor: C.overlay, justifyContent: 'center', padding: 24 },
+  sheet: { backgroundColor: C.card, borderRadius: 18, padding: 16 },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  nav: { fontSize: 28, color: C.primary, paddingHorizontal: 10, lineHeight: 30 },
+  nav: { fontSize: 28, color: C.accent, paddingHorizontal: 10, lineHeight: 30 },
   row: { flexDirection: 'row' },
   cell: { flex: 1, aspectRatio: 1, alignItems: 'center', justifyContent: 'center', textAlign: 'center' },
   day: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },

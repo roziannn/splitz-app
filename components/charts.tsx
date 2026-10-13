@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { LayoutChangeEvent, Pressable, Text, View } from 'react-native';
+import { LayoutChangeEvent, Pressable, View } from 'react-native';
+import { Text } from './Text';
 import { compact, CatSlice, DayPoint } from '../lib/report';
 import { rupiah } from '../lib/format';
-import { C, CAT_COLOR, SERIES } from '../lib/theme';
+import { CAT_COLOR, SERIES } from '../lib/theme';
+import { useColors } from '../lib/themeContext';
 
 // Dimuat saat render (bukan saat start) supaya APK lama tanpa modul native tidak crash; ChartBoundary menangkapnya.
 const loadSvg = () => {
@@ -13,6 +15,11 @@ const loadSvg = () => {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
 const short = (iso: string) => `${+iso.slice(8, 10)} ${MONTHS[+iso.slice(5, 7) - 1]}`;
 
+function FallbackNote({ text }: { text: string }) {
+  const C = useColors();
+  return <Text style={{ color: C.muted, paddingVertical: 12 }}>{text}</Text>;
+}
+
 /** Jika modul native react-native-svg belum ada di APK lama, tampilkan pengganti alih-alih crash. */
 export class ChartBoundary extends React.Component<{ children: React.ReactNode; note?: string }, { failed: boolean }> {
   state = { failed: false };
@@ -21,7 +28,7 @@ export class ChartBoundary extends React.Component<{ children: React.ReactNode; 
   }
   render() {
     if (!this.state.failed) return this.props.children;
-    return <Text style={{ color: C.muted, paddingVertical: 12 }}>{this.props.note ?? 'Grafik tampil setelah aplikasi diperbarui ke versi terbaru (build APK baru).'}</Text>;
+    return <FallbackNote text={this.props.note ?? 'Grafik tampil setelah aplikasi diperbarui ke versi terbaru (build APK baru).'} />;
   }
 }
 
@@ -35,6 +42,7 @@ const niceMax = (v: number) => {
 
 /** Garis tren total belanja per hari. Ketuk bagian grafik untuk melihat nilai hari itu. */
 export function LineChart({ points, height = 190 }: { points: DayPoint[]; height?: number }) {
+  const C = useColors();
   const { Svg, Circle, G, Line, Path, Rect, SvgText } = loadSvg();
   const [w, setW] = useState(0);
   const [sel, setSel] = useState<number | null>(null);
@@ -77,7 +85,7 @@ export function LineChart({ points, height = 190 }: { points: DayPoint[]; height
             {p ? (
               <G>
                 <Line x1={x(active)} x2={x(active)} y1={padT} y2={y(0)} stroke={C.muted} strokeWidth={1} strokeDasharray="3 3" />
-                <Circle cx={x(active)} cy={y(p.value)} r={6} fill="#fff" />
+                <Circle cx={x(active)} cy={y(p.value)} r={6} fill={C.card} />
                 <Circle cx={x(active)} cy={y(p.value)} r={4} fill={SERIES} />
               </G>
             ) : null}
@@ -100,6 +108,7 @@ export function LineChart({ points, height = 190 }: { points: DayPoint[]; height
 
 /** Donat porsi pengeluaran per kategori. Ketuk irisan atau baris legenda untuk menyorot. */
 export function Donut({ slices, total, size = 190 }: { slices: CatSlice[]; total: number; size?: number }) {
+  const C = useColors();
   const { Svg, Circle, G } = loadSvg();
   const [sel, setSel] = useState<string | null>(null);
   const stroke = 28;

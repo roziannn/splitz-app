@@ -1,14 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Text } from './Text';
 import { guessCategory } from '../lib/parse';
 import { uid } from '../lib/format';
-import { C, CAT_COLOR } from '../lib/theme';
+import { CAT_COLOR } from '../lib/theme';
+import { useColors } from '../lib/themeContext';
 import { useAllCategories } from '../lib/customCategories';
 import { Item } from '../lib/types';
 import { MoneyField } from './MoneyField';
 
-const IconButton = ({ name, color, onPress, label }: { name: keyof typeof Ionicons.glyphMap; color: string; onPress: () => void; label: string }) => (
+const IconButton = ({ name, color, onPress, label }: { name: keyof typeof Ionicons.glyphMap; color: string; onPress: () => void; label: string }) => {
+  const C = useColors();
+  return (
   <Pressable
     onPress={onPress}
     hitSlop={8}
@@ -16,10 +20,12 @@ const IconButton = ({ name, color, onPress, label }: { name: keyof typeof Ionico
     style={({ pressed }) => ({ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? C.border : 'transparent' })}>
     <Ionicons name={name} size={20} color={color} />
   </Pressable>
-);
+  );
+};
 
 /** Satu item: nama, jumlah (− / +), harga total, kategori, dan tombol hapus. */
 export function ItemCard({ item, onChange, onDelete }: { item: Item; onChange: (patch: Partial<Item>) => void; onDelete: () => void }) {
+  const C = useColors();
   const categories = useAllCategories();
   const color = CAT_COLOR[item.category] ?? C.muted;
   return (
@@ -72,6 +78,7 @@ export function ItemCard({ item, onChange, onDelete }: { item: Item; onChange: (
 
 /** Tambah cepat: ketik nama dan harga, tekan Tambah. Kategori ditebak dari nama, bisa diubah setelahnya. */
 export function AddItem({ onAdd }: { onAdd: (item: Item) => void }) {
+  const C = useColors();
   const [name, setName] = useState('');
   const [price, setPrice] = useState(0);
   const nameRef = useRef<TextInput>(null);
@@ -87,8 +94,8 @@ export function AddItem({ onAdd }: { onAdd: (item: Item) => void }) {
   };
 
   return (
-    <View style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: C.primary, borderRadius: 16, padding: 12, marginBottom: 12, backgroundColor: C.primarySoft + '55' }}>
-      <Text style={{ fontWeight: '700', color: C.primary, marginBottom: 8 }}>Tambah item</Text>
+    <View style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: C.accent, borderRadius: 16, padding: 12, marginBottom: 12, backgroundColor: C.primarySoft + '55' }}>
+      <Text style={{ fontWeight: '700', color: C.accent, marginBottom: 8 }}>Tambah item</Text>
       <TextInput
         ref={nameRef}
         value={name}
@@ -96,7 +103,7 @@ export function AddItem({ onAdd }: { onAdd: (item: Item) => void }) {
         placeholder="Nama item, mis. Nasi goreng"
         placeholderTextColor={C.muted}
         returnKeyType="done"
-        style={{ borderWidth: 1, borderColor: C.border, borderRadius: 10, backgroundColor: '#fff', paddingHorizontal: 12, paddingVertical: 10, color: C.text, marginBottom: 10 }}
+        style={{ borderWidth: 1, borderColor: C.border, borderRadius: 10, backgroundColor: C.inputBg, paddingHorizontal: 12, paddingVertical: 10, color: C.text, marginBottom: 10 }}
       />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         <View style={{ flex: 1 }}>
