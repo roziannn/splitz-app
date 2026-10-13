@@ -63,12 +63,33 @@ export default function Split() {
     }
   };
 
+  // Teks rinci: ringkasan struk, lalu rincian tiap orang (item, pajak, service, diskon, total).
+  const buildMessage = () => {
+    const sub = r.items.reduce((t, i) => t + i.price, 0);
+    const head = [`*Split bill ${r.merchant}*`, prettyDate(r.date), '', `Subtotal: ${rupiah(sub)}`];
+    if (r.tax) head.push(`Pajak: ${rupiah(r.tax)}`);
+    if (r.service) head.push(`Service: ${rupiah(r.service)}`);
+    if (r.discount) head.push(`Diskon: -${rupiah(r.discount)}`);
+    head.push(`*Total: ${rupiah(r.total)}*`);
+
+    const people = shares
+      .filter((s) => s.total > 0)
+      .map((s) => {
+        const lines = [`*${s.name}* — ${rupiah(s.total)}`];
+        for (const it of s.items) lines.push(`• ${it.name}: ${rupiah(it.amount)}`);
+        if (s.tax) lines.push(`• Pajak: ${rupiah(s.tax)}`);
+        if (s.service) lines.push(`• Service: ${rupiah(s.service)}`);
+        if (s.discount) lines.push(`• Diskon: -${rupiah(s.discount)}`);
+        return lines.join('\n');
+      });
+
+    const tail = unassigned > 0 ? [`Belum dibagi: ${rupiah(unassigned)}`] : [];
+    return [head.join('\n'), ...people, ...tail].join('\n\n');
+  };
+
   const share = async () => {
     await flush().catch(() => {});
-    const lines = shares
-      .filter((s) => s.total > 0)
-      .map((s) => `• ${s.name}: ${rupiah(s.total)}`);
-    Share.share({ message: `Split bill ${r.merchant} (${prettyDate(r.date)})\n${lines.join('\n')}\nTotal: ${rupiah(r.total)}` });
+    Share.share({ message: buildMessage() });
   };
 
   return (
