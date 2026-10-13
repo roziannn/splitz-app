@@ -32,6 +32,24 @@ const extraOf = (r: Receipt) => num(r.tax) + num(r.service) - num(r.discount);
 /** Total struk = subtotal item + pajak + service - diskon (selalu dihitung ulang; nilai kosong dianggap 0). */
 export const receiptTotal = (r: Receipt) => subtotal(r) + extraOf(r);
 
+/** Total dan rincian per kategori untuk sekumpulan struk (pajak/service/diskon dibagi sesuai porsi harga item). */
+export function categoryTotals(list: Receipt[]): { total: number; byCat: CatSlice[] } {
+  const cat: Record<string, number> = {};
+  let total = 0;
+  for (const r of list) {
+    const sub = subtotal(r);
+    const extra = extraOf(r);
+    if (sub > 0) for (const i of r.items) cat[i.category] = (cat[i.category] || 0) + num(i.price) + extra * (num(i.price) / sub);
+    else if (extra > 0) cat.Lainnya = (cat.Lainnya || 0) + extra;
+    total += sub + extra;
+  }
+  const byCat = Object.entries(cat)
+    .filter(([, v]) => v > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, value]) => ({ name, value, pct: total > 0 ? (value / total) * 100 : 0 }));
+  return { total, byCat };
+}
+
 const daysBetween = (a: string, b: string) => {
   const t = (iso: string) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d); };
   return Math.round((t(b) - t(a)) / 86400000);
@@ -69,20 +87,7 @@ export function buildReport(receipts: Receipt[], range: Range, todayIso: string 
   const perDay: Record<string, number> = {};
   for (const r of dated) perDay[r.date] = (perDay[r.date] || 0) + receiptTotal(r);
 
-  const cat: Record<string, number> = {};
-  let total = 0;
-  for (const r of inRange) {
-    const sub = subtotal(r);
-    const extra = extraOf(r); // dibagi ke kategori sesuai porsi harga
-    if (sub > 0) for (const i of r.items) cat[i.category] = (cat[i.category] || 0) + num(i.price) + extra * (num(i.price) / sub);
-    else if (extra > 0) cat.Lainnya = (cat.Lainnya || 0) + extra;
-    total += sub + extra;
-  }
-
-  const byCat = Object.entries(cat)
-    .filter(([, v]) => v > 0)
-    .sort((a, b) => b[1] - a[1])
-    .map(([name, value]) => ({ name, value, pct: total > 0 ? (value / total) * 100 : 0 }));
+  const { total, byCat } = categoryTotals(inRange);
 
   // Garis tren: untuk "Hari ini" tampilkan 7 hari terakhir agar ada alur yang terlihat.
   const span = range === 'day' ? 7 : Math.min(days, MAX_POINTS);
