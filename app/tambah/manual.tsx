@@ -1,0 +1,119 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { DateField } from '../../components/DateField';
+import { evaluate, display, hasOperator, press } from '../../lib/calc';
+import { MANUAL_CATEGORIES } from '../../lib/categories';
+import { localIso } from '../../lib/dates';
+import { prettyDate, rupiah, uid } from '../../lib/format';
+import { useStore } from '../../lib/store';
+import { C } from '../../lib/theme';
+
+const ROWS = [
+  ['7', '8', '9', 'DATE'],
+  ['4', '5', '6', '+'],
+  ['1', '2', '3', ',', '-'],
+  ['0', '000', '⌫', 'OK'],
+];
+
+export default function Manual() {
+  const router = useRouter();
+  const { upsert } = useStore();
+  const [category, setCategory] = useState<string | null>(null);
+  const [expr, setExpr] = useState('');
+  const [note, setNote] = useState('');
+  const [date, setDate] = useState(localIso());
+
+  const calculating = hasOperator(expr);
+  const amount = evaluate(expr);
+
+  const save = () => {
+    if (!category || amount <= 0) return;
+    upsert({
+      id: uid(),
+      merchant: category,
+      date,
+      items: [{ id: uid(), name: note.trim() || category, qty: 1, price: amount, category, assignedTo: [] }],
+      tax: 0,
+      service: 0,
+      discount: 0,
+      total: amount,
+      people: [],
+      createdAt: Date.now(),
+      source: 'manual',
+    });
+    router.back();
+  };
+
+  const onKey = (k: string) => {
+    if (k === 'OK') {
+      if (calculating) setExpr(String(amount)); // tombol "=": hitung dulu, ketuk lagi untuk simpan
+      else save();
+    } else setExpr((e) => press(e, k));
+  };
+
+  const keyBox = { flex: 1, height: 52, margin: 3, borderRadius: 8, backgroundColor: '#fff', alignItems: 'center' as const, justifyContent: 'center' as const };
+
+  return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView contentContainerStyle={{ padding: 12, paddingBottom: 24 }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+          {MANUAL_CATEGORIES.map((c) => {
+            const active = category === c.name;
+            return (
+              <Pressable key={c.name} onPress={() => setCategory(c.name)} style={{ width: '25%', alignItems: 'center', paddingVertical: 8 }}>
+                <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: active ? c.color : '#ececef', alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name={c.icon} size={28} color={active ? '#fff' : '#3f3f46'} />
+                </View>
+                <Text style={{ fontSize: 12, color: C.text, marginTop: 4, textAlign: 'center', fontWeight: active ? '700' : '400' }} numberOfLines={2}>{c.name}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollView>
+
+      {category ? (
+        <View style={{ backgroundColor: '#e9eaee', padding: 8, paddingBottom: 14 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 6, marginBottom: 6 }}>
+            <Text style={{ color: C.muted, fontWeight: '600' }}>{category}</Text>
+            <Text style={{ fontSize: 30, fontWeight: '600', color: C.text }} numberOfLines={1} adjustsFontSizeToFit>{display(expr)}</Text>
+          </View>
+          {calculating ? <Text style={{ textAlign: 'right', color: C.muted, marginBottom: 4, paddingRight: 6 }}>= {rupiah(amount)}</Text> : null}
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 8, paddingHorizontal: 12, marginBottom: 6 }}>
+            <Text style={{ color: C.muted }}>Catatan :</Text>
+            <TextInput value={note} onChangeText={setNote} placeholder="Masukkan catatan..." placeholderTextColor="#a1a1aa" style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 8, color: C.text }} />
+          </View>
+          {ROWS.map((row, ri) => (
+            <View key={ri} style={{ flexDirection: 'row' }}>
+              {row.map((k) => {
+                if (k === 'DATE') {
+                  return (
+                    <View key={k} style={{ flex: 1 }}>
+                      <DateField label="Tanggal" value={date} onChange={(v) => v && setDate(v)} trigger={(open) => (
+                        <Pressable onPress={open} style={keyBox}>
+                          <Ionicons name="calendar-outline" size={18} color={C.primary} />
+                          <Text style={{ color: C.primary, fontSize: 12, fontWeight: '600' }}>{date === localIso() ? 'Hari ini' : prettyDate(date)}</Text>
+                        </Pressable>
+                      )} />
+                    </View>
+                  );
+                }
+                const ok = k === 'OK';
+                return (
+                  <Pressable key={k} onPress={() => onKey(k)} disabled={ok && !calculating && amount <= 0} style={[keyBox, ok && { backgroundColor: amount > 0 || calculating ? C.primary : '#b9bbc2' }]}>
+                    {k === '⌫' ? <Ionicons name="backspace-outline" size={26} color={C.text} />
+                      : ok ? <Ionicons name={calculating ? 'return-down-back' : 'checkmark'} size={28} color="#fff" />
+                      : <Text style={{ fontSize: 24, color: C.text }}>{k === '-' ? '−' : k}</Text>}
+                  </Pressable>
+                );
+              })}
+            </View>
+          ))}
+        </View>
+      ) : (
+        <Text style={{ textAlign: 'center', color: C.muted, padding: 14 }}>Pilih kategori untuk mengisi nominal.</Text>
+      )}
+    </KeyboardAvoidingView>
+  );
+}
