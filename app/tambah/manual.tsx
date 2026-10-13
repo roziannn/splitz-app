@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Text } from '../../components/Text';
 import { AddCategorySheet } from '../../components/AddCategorySheet';
 import { DateField } from '../../components/DateField';
 import { evaluate, display, hasOperator, press } from '../../lib/calc';
@@ -9,7 +10,7 @@ import { isCustom, removeCategory, useAllCategories } from '../../lib/customCate
 import { localIso } from '../../lib/dates';
 import { prettyDate, rupiah, uid } from '../../lib/format';
 import { useStore } from '../../lib/store';
-import { C } from '../../lib/theme';
+import { useColors } from '../../lib/themeContext';
 
 const ROWS = [
   ['7', '8', '9', 'DATE'],
@@ -19,6 +20,7 @@ const ROWS = [
 ];
 
 export default function Manual() {
+  const C = useColors();
   const router = useRouter();
   const { upsert } = useStore();
   const [category, setCategory] = useState<string | null>(null);
@@ -56,7 +58,7 @@ export default function Manual() {
     } else setExpr((e) => press(e, k));
   };
 
-  const keyBox = { flex: 1, height: 52, margin: 3, borderRadius: 8, backgroundColor: '#fff', alignItems: 'center' as const, justifyContent: 'center' as const };
+  const keyBox = { flex: 1, height: 52, margin: 3, borderRadius: 8, backgroundColor: C.key, alignItems: 'center' as const, justifyContent: 'center' as const };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -77,8 +79,8 @@ export default function Manual() {
                   ]);
                 }}
                 style={{ width: '25%', alignItems: 'center', paddingVertical: 8 }}>
-                <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: active ? c.color : '#ececef', alignItems: 'center', justifyContent: 'center' }}>
-                  <Ionicons name={c.icon} size={28} color={active ? '#fff' : '#3f3f46'} />
+                <View style={{ width: 58, height: 58, borderRadius: 29, backgroundColor: active ? c.color : C.chipBg, alignItems: 'center', justifyContent: 'center' }}>
+                  <Ionicons name={c.icon} size={28} color={active ? '#fff' : C.chipIcon} />
                 </View>
                 <Text style={{ fontSize: 12, color: C.text, marginTop: 4, textAlign: 'center', fontWeight: active ? '700' : '400' }} numberOfLines={2}>{c.name}</Text>
               </Pressable>
@@ -98,15 +100,15 @@ export default function Manual() {
       <AddCategorySheet visible={adding} onClose={() => setAdding(false)} onAdded={(name) => setCategory(name)} />
 
       {category ? (
-        <View style={{ backgroundColor: '#e9eaee', padding: 8, paddingBottom: 14 }}>
+        <View style={{ backgroundColor: C.keypadBg, padding: 8, paddingBottom: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 6, marginBottom: 6 }}>
             <Text style={{ color: C.muted, fontWeight: '600' }}>{category}</Text>
             <Text style={{ fontSize: 30, fontWeight: '600', color: C.text }} numberOfLines={1} adjustsFontSizeToFit>{display(expr)}</Text>
           </View>
           {calculating ? <Text style={{ textAlign: 'right', color: C.muted, marginBottom: 4, paddingRight: 6 }}>= {rupiah(amount)}</Text> : null}
-          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 8, paddingHorizontal: 12, marginBottom: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: C.inputBg, borderRadius: 8, paddingHorizontal: 12, marginBottom: 6 }}>
             <Text style={{ color: C.muted }}>Catatan :</Text>
-            <TextInput value={note} onChangeText={setNote} placeholder="Masukkan catatan..." placeholderTextColor="#a1a1aa" style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 8, color: C.text }} />
+            <TextInput value={note} onChangeText={setNote} placeholder="Masukkan catatan..." placeholderTextColor={C.placeholder} style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 8, color: C.text }} />
           </View>
           {ROWS.map((row, ri) => (
             <View key={ri} style={{ flexDirection: 'row' }}>
@@ -116,8 +118,8 @@ export default function Manual() {
                     <View key={k} style={{ flex: 1 }}>
                       <DateField label="Tanggal" value={date} onChange={(v) => v && setDate(v)} trigger={(open) => (
                         <Pressable onPress={open} style={keyBox}>
-                          <Ionicons name="calendar-outline" size={18} color={C.primary} />
-                          <Text style={{ color: C.primary, fontSize: 12, fontWeight: '600' }}>{date === localIso() ? 'Hari ini' : prettyDate(date)}</Text>
+                          <Ionicons name="calendar-outline" size={18} color={C.accent} />
+                          <Text style={{ color: C.accent, fontSize: 12, fontWeight: '600' }}>{date === localIso() ? 'Hari ini' : prettyDate(date)}</Text>
                         </Pressable>
                       )} />
                     </View>
@@ -125,7 +127,7 @@ export default function Manual() {
                 }
                 const ok = k === 'OK';
                 return (
-                  <Pressable key={k} onPress={() => onKey(k)} disabled={ok && !calculating && amount <= 0} style={[keyBox, ok && { backgroundColor: amount > 0 || calculating ? C.primary : '#b9bbc2' }]}>
+                  <Pressable key={k} onPress={() => onKey(k)} disabled={ok && !calculating && amount <= 0} style={[keyBox, ok && { backgroundColor: amount > 0 || calculating ? C.primary : C.keyDisabled }]}>
                     {k === '⌫' ? <Ionicons name="backspace-outline" size={26} color={C.text} />
                       : ok ? <Ionicons name={calculating ? 'return-down-back' : 'checkmark'} size={28} color="#fff" />
                       : <Text style={{ fontSize: 24, color: C.text }}>{k === '-' ? '−' : k}</Text>}

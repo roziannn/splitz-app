@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { deleteReceiptImage } from './images';
 import { loadReceipts, saveReceipts } from './storage';
 import { Receipt } from './types';
@@ -38,35 +39,65 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const commit = useCallback((fn: (prev: Receipt[]) => Receipt[]) => {
-    const next = fn(latest.current);
-    latest.current = next;
-    setReceipts(next);
-    // Jangan menulis sebelum data lama selesai dimuat, supaya riwayat tidak tertimpa.
-    if (!readyRef.current) return;
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Tulis ke penyimpanan sekarang juga (antrean berurutan agar tidak saling menimpa).
+  const writeNow = useCallback(() => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
     queue.current = queue.current.then(() => saveReceipts(latest.current)).catch(() => {});
+    return queue.current;
   }, []);
+
+  // Mengetik di banyak kolom memicu banyak perubahan beruntun; gabungkan jadi satu tulisan agar aplikasi tetap mulus.
+  const schedule = useCallback(() => {
+    if (!readyRef.current) return; // jangan menulis sebelum data lama selesai dimuat, supaya riwayat tidak tertimpa
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(writeNow, 250);
+  }, [writeNow]);
+
+  const commit = useCallback(
+    (fn: (prev: Receipt[]) => Receipt[]) => {
+      const next = fn(latest.current);
+      latest.current = next;
+      setReceipts(next);
+      schedule();
+    },
+    [schedule],
+  );
 
   const flush = useCallback(async () => {
     while (!readyRef.current) await new Promise((res) => setTimeout(res, 50));
-    queue.current = queue.current.then(() => saveReceipts(latest.current)).catch(() => {});
-    await queue.current;
-  }, []);
+    await writeNow();
+  }, [writeNow]);
 
-  const value = useMemo<Ctx>(
-    () => ({
-      receipts,
-      ready,
-      upsert: (r) =>
-        commit((prev) => (prev.some((x) => x.id === r.id) ? prev.map((x) => (x.id === r.id ? r : x)) : [r, ...prev])),
-      remove: (id) => {
-        deleteReceiptImage(latest.current.find((x) => x.id === id)?.image);
-        commit((prev) => prev.filter((x) => x.id !== id));
-      },
-      get: (id) => receipts.find((r) => r.id === id),
-      flush,
-    }),
-    [receipts, ready, commit, flush],
+  // Pastikan perubahan yang tertunda tertulis saat aplikasi ke latar belakang atau ditutup.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (st) => {
+      if (st !== 'active' && timer.current) writeNow();
+    });
+    return () => {
+      sub.remove();
+      if (timer.current) writeNow();
+    };
+  }, [writeNow]);
+
+  // Fungsi stabil (tidak berubah antar render) agar komponen daftar yang di-memo tidak digambar ulang tanpa perlu.
+  const upsert = useCallback(
+    (r: Receipt) => commit((prev) => (prev.some((x) => x.id === r.id) ? prev.map((x) => (x.id === r.id ? r : x)) : [r, ...prev])),
+    [commit],
   );
+  const remove = useCallback(
+    (id: string) => {
+      deleteReceiptImage(latest.current.find((x) => x.id === id)?.image);
+      commit((prev) => prev.filter((x) => x.id !== id));
+    },
+    [commit],
+  );
+  const get = useCallback((id: string) => latest.current.find((r) => r.id === id), []);
+
+  const value = useMemo<Ctx>(() => ({ receipts, ready, upsert, remove, get, flush }), [receipts, ready, upsert, remove, get, flush]);
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }

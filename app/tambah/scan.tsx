@@ -1,14 +1,16 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Image, ScrollView, Text } from 'react-native';
+import { Alert, Image, ScrollView } from 'react-native';
+import { Text } from '../../components/Text';
 import { Button, Card } from '../../components/ui';
 import { saveReceiptImage } from '../../lib/images';
 import { scanReceipt } from '../../lib/ocr';
 import { useStore } from '../../lib/store';
-import { C } from '../../lib/theme';
+import { useColors } from '../../lib/themeContext';
 
 export default function Scan() {
+  const C = useColors();
   const router = useRouter();
   const { upsert } = useStore();
   const [uri, setUri] = useState<string | null>(null);

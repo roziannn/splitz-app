@@ -1,9 +1,11 @@
 import { useRouter } from 'expo-router';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Text } from '../../components/Text';
 import { Tile } from '../../components/Tile';
-import { C } from '../../lib/theme';
+import { useColors } from '../../lib/themeContext';
 
 export default function Catat() {
+  const C = useColors();
   const router = useRouter();
 
   return (

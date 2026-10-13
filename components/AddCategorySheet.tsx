@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Text } from './Text';
 import { addCategory, MAX_NAME } from '../lib/customCategories';
 import { COLOR_CHOICES, ICON_CHOICES, IconName } from '../lib/iconChoices';
-import { C } from '../lib/theme';
+import { useColors } from '../lib/themeContext';
 
 interface Props {
   visible: boolean;
@@ -13,6 +14,7 @@ interface Props {
 
 /** Lembar bawah untuk membuat kategori: nama, ikon pilihan sendiri, dan warna. */
 export function AddCategorySheet({ visible, onClose, onAdded }: Props) {
+  const C = useColors();
   const [name, setName] = useState('');
   const [icon, setIcon] = useState<IconName>(ICON_CHOICES[0]);
   const [color, setColor] = useState(COLOR_CHOICES[0]);
@@ -32,8 +34,8 @@ export function AddCategorySheet({ visible, onClose, onAdded }: Props) {
 
   return (
     <Modal transparent animationType="slide" visible={visible} onRequestClose={close}>
-      <Pressable style={{ flex: 1, backgroundColor: 'rgba(15,23,42,0.45)', justifyContent: 'flex-end' }} onPress={close}>
-        <Pressable onPress={() => {}} style={{ backgroundColor: '#fff', borderTopLeftRadius: 22, borderTopRightRadius: 22, maxHeight: '88%' }}>
+      <Pressable style={{ flex: 1, backgroundColor: C.overlay, justifyContent: 'flex-end' }} onPress={close}>
+        <Pressable onPress={() => {}} style={{ backgroundColor: C.card, borderTopLeftRadius: 22, borderTopRightRadius: 22, maxHeight: '88%' }}>
           <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 12 }} keyboardShouldPersistTaps="handled">
             <Text style={{ fontSize: 18, fontWeight: '800', color: C.text, marginBottom: 14 }}>Kategori baru</Text>
 
@@ -58,8 +60,8 @@ export function AddCategorySheet({ visible, onClose, onAdded }: Props) {
                 const active = i === icon;
                 return (
                   <Pressable key={i} onPress={() => setIcon(i)} style={{ width: '20%', alignItems: 'center', paddingVertical: 6 }}>
-                    <View style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? color : '#ececef' }}>
-                      <Ionicons name={i} size={24} color={active ? '#fff' : '#3f3f46'} />
+                    <View style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: active ? color : C.chipBg }}>
+                      <Ionicons name={i} size={24} color={active ? '#fff' : C.chipIcon} />
                     </View>
                   </Pressable>
                 );

@@ -1,20 +1,23 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Alert, Image, Modal, Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../../components/Text';
 import { DateField } from '../../components/DateField';
 import { ItemCard, AddItem } from '../../components/ItemEditor';
 import { MoneyField } from '../../components/MoneyField';
 import { Button, Card, Field } from '../../components/ui';
 import { rupiah } from '../../lib/format';
+import { animate } from '../../lib/anim';
 import { deleteReceiptImage, imagePath, saveReceiptImage } from '../../lib/images';
 import { canSplit, editHref } from '../../lib/routes';
 import { grandTotal, itemsSubtotal } from '../../lib/split';
 import { useStore } from '../../lib/store';
-import { C } from '../../lib/theme';
+import { useColors } from '../../lib/themeContext';
 import { Item, Receipt } from '../../lib/types';
 
 export default function ReceiptDetail() {
+  const C = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { get, upsert, remove } = useStore();
@@ -35,6 +38,7 @@ export default function ReceiptDetail() {
 
   // Hapus langsung tanpa dialog; ada waktu 5 detik untuk mengurungkan.
   const deleteItem = (item: Item) => {
+    animate();
     const index = r.items.findIndex((x) => x.id === item.id);
     save({ items: r.items.filter((x) => x.id !== item.id) });
     setUndo({ item, index });
@@ -43,6 +47,7 @@ export default function ReceiptDetail() {
   };
   const restoreItem = () => {
     if (!undo) return;
+    animate();
     const items = [...r.items];
     items.splice(Math.min(undo.index, items.length), 0, undo.item);
     save({ items });
@@ -105,14 +110,14 @@ export default function ReceiptDetail() {
       {r.items.map((i) => (
         <ItemCard key={i.id} item={i} onChange={(patch) => setItem(i.id, patch)} onDelete={() => deleteItem(i)} />
       ))}
-      <AddItem onAdd={(item) => save({ items: [...r.items, item] })} />
+      <AddItem onAdd={(item) => { animate(); save({ items: [...r.items, item] }); }} />
 
       <Card>
         <MoneyField label="Pajak" value={r.tax} onChange={(n) => save({ tax: n })} />
         <MoneyField label="Service charge" value={r.service} onChange={(n) => save({ service: n })} />
         <MoneyField label="Diskon" value={r.discount} onChange={(n) => save({ discount: n })} />
         <Text style={{ color: C.muted }}>Subtotal {rupiah(itemsSubtotal(r))}</Text>
-        <Text style={{ fontSize: 22, fontWeight: '800', color: C.primary }}>Total {rupiah(r.total)}</Text>
+        <Text style={{ fontSize: 22, fontWeight: '800', color: C.accent }}>Total {rupiah(r.total)}</Text>
       </Card>
 
       {canSplit(r) ? (
@@ -142,10 +147,10 @@ export default function ReceiptDetail() {
     </ScrollView>
 
     {undo ? (
-      <View style={{ position: 'absolute', left: 16, right: 16, bottom: 16, backgroundColor: C.text, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 6 }}>
-        <Text style={{ color: '#fff' }} numberOfLines={1}>{undo.item.name ? `"${undo.item.name}" dihapus` : 'Item dihapus'}</Text>
+      <View style={{ position: 'absolute', left: 16, right: 16, bottom: 16, backgroundColor: C.snackBg, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 6 }}>
+        <Text style={{ color: C.snackText }} numberOfLines={1}>{undo.item.name ? `"${undo.item.name}" dihapus` : 'Item dihapus'}</Text>
         <Pressable onPress={restoreItem} hitSlop={10}>
-          <Text style={{ color: '#5eead4', fontWeight: '800' }}>URUNGKAN</Text>
+          <Text style={{ color: C.snackAction, fontWeight: '800' }}>URUNGKAN</Text>
         </Pressable>
       </View>
     ) : null}
