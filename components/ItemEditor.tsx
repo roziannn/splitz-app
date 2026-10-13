@@ -1,83 +1,93 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
-import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { memo, useRef, useState } from 'react';
+import { Pressable, TextInput, View } from 'react-native';
 import { Text } from './Text';
+import { animate } from '../lib/anim';
+import { useAllCategories } from '../lib/customCategories';
+import { thousands, uid } from '../lib/format';
 import { guessCategory } from '../lib/parse';
-import { uid } from '../lib/format';
 import { CAT_COLOR } from '../lib/theme';
 import { useColors } from '../lib/themeContext';
-import { useAllCategories } from '../lib/customCategories';
 import { Item } from '../lib/types';
-import { MoneyField } from './MoneyField';
 
-const IconButton = ({ name, color, onPress, label }: { name: keyof typeof Ionicons.glyphMap; color: string; onPress: () => void; label: string }) => {
+const toNum = (t: string) => Number(t.replace(/\D/g, '').slice(0, 12)) || 0;
+
+function Step({ name, onPress, enabled = true, label }: { name: keyof typeof Ionicons.glyphMap; onPress: () => void; enabled?: boolean; label: string }) {
   const C = useColors();
   return (
-  <Pressable
-    onPress={onPress}
-    hitSlop={8}
-    accessibilityLabel={label}
-    style={({ pressed }) => ({ width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? C.border : 'transparent' })}>
-    <Ionicons name={name} size={20} color={color} />
-  </Pressable>
+    <Pressable onPress={onPress} hitSlop={6} accessibilityLabel={label} style={{ width: 26, height: 26, borderRadius: 13, borderWidth: 1, borderColor: C.border, alignItems: 'center', justifyContent: 'center' }}>
+      <Ionicons name={name} size={16} color={enabled ? C.text : C.border} />
+    </Pressable>
   );
-};
+}
 
-/** Satu item: nama, jumlah (− / +), harga total, kategori, dan tombol hapus. */
-export function ItemCard({ item, onChange, onDelete }: { item: Item; onChange: (patch: Partial<Item>) => void; onDelete: () => void }) {
+/** Satu baris item: nama dan harga di atas; jumlah dan kategori kecil di bawah (ketuk kategori untuk mengganti). */
+const ItemRow = memo(function ItemRow({ item, first, onChange, onDelete }: { item: Item; first: boolean; onChange: (id: string, patch: Partial<Item>) => void; onDelete: (item: Item) => void }) {
   const C = useColors();
   const categories = useAllCategories();
+  const [open, setOpen] = useState(false);
   const color = CAT_COLOR[item.category] ?? C.muted;
   return (
-    <View style={{ backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border, marginBottom: 10, overflow: 'hidden' }}>
-      <View style={{ height: 3, backgroundColor: color }} />
-      <View style={{ padding: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <TextInput
-            value={item.name}
-            onChangeText={(t) => onChange({ name: t })}
-            placeholder="Nama item"
-            placeholderTextColor={C.muted}
-            style={{ flex: 1, fontSize: 16, fontWeight: '700', color: C.text, paddingVertical: 4 }}
-          />
-          <IconButton name="trash-outline" color={C.danger} onPress={onDelete} label="Hapus item" />
-        </View>
+    <View style={{ paddingVertical: 10, borderTopWidth: first ? 0 : 1, borderTopColor: C.border }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <TextInput
+          value={item.name}
+          onChangeText={(t) => onChange(item.id, { name: t })}
+          placeholder="Nama item"
+          placeholderTextColor={C.muted}
+          style={{ flex: 1, fontSize: 15, fontWeight: '600', color: C.text, paddingVertical: 4 }}
+        />
+        <Text style={{ color: C.muted, fontSize: 13 }}>Rp</Text>
+        <TextInput
+          value={thousands(item.price)}
+          onChangeText={(t) => onChange(item.id, { price: toNum(t) })}
+          keyboardType="numeric"
+          placeholder="0"
+          placeholderTextColor={C.muted}
+          style={{ minWidth: 80, textAlign: 'right', fontSize: 15, fontWeight: '600', color: C.text, paddingVertical: 4 }}
+        />
+        <Pressable onPress={() => onDelete(item)} hitSlop={8} accessibilityLabel="Hapus item">
+          <Ionicons name="close" size={20} color={C.muted} />
+        </Pressable>
+      </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 12, marginTop: 8 }}>
-          <View>
-            <Text style={{ fontSize: 12, color: C.muted, marginBottom: 4, fontWeight: '600' }}>Jumlah</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: C.border, borderRadius: 10, height: 42 }}>
-              <IconButton name="remove" color={item.qty > 1 ? C.text : C.border} onPress={() => onChange({ qty: Math.max(1, item.qty - 1) })} label="Kurangi jumlah" />
-              <Text style={{ minWidth: 22, textAlign: 'center', fontWeight: '700', color: C.text }}>{item.qty}</Text>
-              <IconButton name="add" color={C.text} onPress={() => onChange({ qty: item.qty + 1 })} label="Tambah jumlah" />
-            </View>
-          </View>
-          <View style={{ flex: 1 }}>
-            <MoneyField compact label="Harga total" value={item.price} onChange={(n) => onChange({ price: n })} />
-          </View>
-        </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+        <Step name="remove" label="Kurangi jumlah" enabled={item.qty > 1} onPress={() => onChange(item.id, { qty: Math.max(1, item.qty - 1) })} />
+        <Text style={{ minWidth: 18, textAlign: 'center', fontWeight: '700' }}>{item.qty}</Text>
+        <Step name="add" label="Tambah jumlah" onPress={() => onChange(item.id, { qty: item.qty + 1 })} />
+        <Pressable onPress={() => { animate(); setOpen((o) => !o); }} hitSlop={6} style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 6 }}>
+          <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: color, marginRight: 6 }} />
+          <Text style={{ fontSize: 12, color: C.muted }}>{item.category}</Text>
+          <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={14} color={C.muted} style={{ marginLeft: 2 }} />
+        </Pressable>
+      </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={{ marginTop: 10 }}>
+      {open ? (
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 8 }}>
           {categories.map(({ name: c }) => {
             const active = item.category === c;
             return (
               <Pressable
                 key={c}
-                onPress={() => onChange({ category: c })}
-                style={{ flexDirection: 'row', alignItems: 'center', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, marginRight: 6, backgroundColor: active ? CAT_COLOR[c] : C.bg, borderWidth: 1, borderColor: active ? CAT_COLOR[c] : C.border }}>
-                {!active ? <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: CAT_COLOR[c], marginRight: 6 }} /> : null}
+                onPress={() => { animate(); onChange(item.id, { category: c }); setOpen(false); }}
+                style={{ flexDirection: 'row', alignItems: 'center', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5, marginRight: 6, marginBottom: 6, backgroundColor: active ? CAT_COLOR[c] : 'transparent', borderWidth: 1, borderColor: active ? CAT_COLOR[c] : C.border }}>
                 <Text style={{ fontSize: 12, fontWeight: '600', color: active ? '#fff' : C.text }}>{c}</Text>
               </Pressable>
             );
           })}
-        </ScrollView>
-      </View>
+        </View>
+      ) : null}
     </View>
   );
-}
+});
 
-/** Tambah cepat: ketik nama dan harga, tekan Tambah. Kategori ditebak dari nama, bisa diubah setelahnya. */
-export function AddItem({ onAdd }: { onAdd: (item: Item) => void }) {
+/** Semua item dalam satu kartu: baris ringkas, dan baris tambah cepat di paling bawah. */
+export function ItemList({ items, onChange, onDelete, onAdd }: {
+  items: Item[];
+  onChange: (id: string, patch: Partial<Item>) => void;
+  onDelete: (item: Item) => void;
+  onAdd: (item: Item) => void;
+}) {
   const C = useColors();
   const [name, setName] = useState('');
   const [price, setPrice] = useState(0);
@@ -94,27 +104,34 @@ export function AddItem({ onAdd }: { onAdd: (item: Item) => void }) {
   };
 
   return (
-    <View style={{ borderWidth: 1.5, borderStyle: 'dashed', borderColor: C.accent, borderRadius: 16, padding: 12, marginBottom: 12, backgroundColor: C.primarySoft + '55' }}>
-      <Text style={{ fontWeight: '700', color: C.accent, marginBottom: 8 }}>Tambah item</Text>
-      <TextInput
-        ref={nameRef}
-        value={name}
-        onChangeText={setName}
-        placeholder="Nama item, mis. Nasi goreng"
-        placeholderTextColor={C.muted}
-        returnKeyType="done"
-        style={{ borderWidth: 1, borderColor: C.border, borderRadius: 10, backgroundColor: C.inputBg, paddingHorizontal: 12, paddingVertical: 10, color: C.text, marginBottom: 10 }}
-      />
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-        <View style={{ flex: 1 }}>
-          <MoneyField compact value={price} onChange={setPrice} placeholder="Harga" />
-        </View>
-        <Pressable
-          onPress={add}
-          disabled={!ready}
-          style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.primary, borderRadius: 12, paddingHorizontal: 16, height: 44, opacity: !ready ? 0.4 : pressed ? 0.85 : 1 })}>
-          <Ionicons name="add-circle" size={20} color="#fff" />
-          <Text style={{ color: '#fff', fontWeight: '700' }}>Tambah</Text>
+    <View style={{ backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border, paddingHorizontal: 14, marginBottom: 12 }}>
+      {items.map((i, k) => (
+        <ItemRow key={i.id} item={i} first={k === 0} onChange={onChange} onDelete={onDelete} />
+      ))}
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, borderTopWidth: items.length ? 1 : 0, borderTopColor: C.border }}>
+        <TextInput
+          ref={nameRef}
+          value={name}
+          onChangeText={setName}
+          onSubmitEditing={add}
+          placeholder="+ Tambah item"
+          placeholderTextColor={C.muted}
+          returnKeyType="done"
+          blurOnSubmit={false}
+          style={{ flex: 1, fontSize: 15, color: C.text, paddingVertical: 8 }}
+        />
+        <Text style={{ color: C.muted, fontSize: 13 }}>Rp</Text>
+        <TextInput
+          value={thousands(price)}
+          onChangeText={(t) => setPrice(toNum(t))}
+          onSubmitEditing={add}
+          keyboardType="numeric"
+          placeholder="0"
+          placeholderTextColor={C.muted}
+          style={{ minWidth: 80, textAlign: 'right', fontSize: 15, color: C.text, paddingVertical: 8 }}
+        />
+        <Pressable onPress={add} disabled={!ready} hitSlop={6} accessibilityLabel="Tambah item" style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', opacity: ready ? 1 : 0.35 }}>
+          <Ionicons name="add" size={22} color="#fff" />
         </Pressable>
       </View>
     </View>
