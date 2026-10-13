@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { useDeferredValue, useMemo, useState } from 'react';
+import { ScrollView, View } from 'react-native';
+import { Text } from '../../components/Text';
 import { ChartBoundary, Donut, LineChart } from '../../components/charts';
 import { Button, Card, Chip, Empty } from '../../components/ui';
 import { prettyDate, rupiah } from '../../lib/format';
 import { buildReport, Range } from '../../lib/report';
 import { useStore } from '../../lib/store';
-import { C } from '../../lib/theme';
+import { useColors } from '../../lib/themeContext';
 
 const RANGES: { key: Range; label: string; long: string }[] = [
   { key: 'day', label: 'Hari ini', long: 'hari ini' },
@@ -16,6 +17,7 @@ const RANGES: { key: Range; label: string; long: string }[] = [
 ];
 
 function Tile({ label, value, sub, subColor }: { label: string; value: string; sub?: string; subColor?: string }) {
+  const C = useColors();
   return (
     <View style={{ flex: 1, backgroundColor: C.card, borderRadius: 14, borderWidth: 1, borderColor: C.border, padding: 12 }}>
       <Text style={{ color: C.muted, fontSize: 12 }}>{label}</Text>
@@ -28,7 +30,9 @@ function Tile({ label, value, sub, subColor }: { label: string; value: string; s
 }
 
 export default function Dashboard() {
-  const { receipts } = useStore();
+  const C = useColors();
+  const { receipts: live } = useStore();
+  const receipts = useDeferredValue(live);
   const [range, setRange] = useState<Range>('week');
   const rep = useMemo(() => buildReport(receipts, range), [receipts, range]);
   const meta = RANGES.find((r) => r.key === range)!;

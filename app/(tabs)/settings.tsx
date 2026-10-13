@@ -1,13 +1,23 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Alert, ScrollView, Text } from 'react-native';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
+import { Text } from '../../components/Text';
 import { Button, Card } from '../../components/ui';
 import { localIso } from '../../lib/dates';
 import { saveBackupToFolder, shareBackup } from '../../lib/backupIO';
 import { useStore } from '../../lib/store';
-import { C } from '../../lib/theme';
+import { ThemeMode, useColors, useThemeMode } from '../../lib/themeContext';
 import { applyOtaUpdate, checkForUpdate, currentVersion, downloadAndInstallApk } from '../../lib/update';
 
+const MODES: { key: ThemeMode; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  { key: 'system', label: 'Ikuti sistem', icon: 'phone-portrait-outline' },
+  { key: 'light', label: 'Terang', icon: 'sunny-outline' },
+  { key: 'dark', label: 'Gelap', icon: 'moon-outline' },
+];
+
 export default function Settings() {
+  const C = useColors();
+  const { mode, setMode } = useThemeMode();
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
   const { receipts } = useStore();
@@ -63,9 +73,28 @@ export default function Settings() {
   return (
     <ScrollView contentContainerStyle={{ padding: 16 }}>
       <Card>
+        <Text style={{ fontWeight: '700', marginBottom: 10, color: C.text }}>Tampilan</Text>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {MODES.map((m) => {
+            const active = mode === m.key;
+            return (
+              <Pressable
+                key={m.key}
+                onPress={() => setMode(m.key)}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: active }}
+                style={({ pressed }) => ({ flex: 1, alignItems: 'center', paddingVertical: 14, borderRadius: 14, borderWidth: 1.5, borderColor: active ? C.accent : C.border, backgroundColor: active ? C.primarySoft : 'transparent', opacity: pressed ? 0.85 : 1 })}>
+                <Ionicons name={m.icon} size={24} color={active ? C.accent : C.muted} />
+                <Text style={{ marginTop: 6, fontSize: 12, fontWeight: active ? '700' : '500', color: active ? C.accent : C.muted }}>{m.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Card>
+      <Card>
         <Text style={{ fontWeight: '700', marginBottom: 6 }}>Pembaruan aplikasi</Text>
         <Text style={{ color: C.muted, marginBottom: 10 }}>Versi saat ini: {currentVersion()}</Text>
-        {status ? <Text style={{ color: C.primary, marginBottom: 10 }}>{status}</Text> : null}
+        {status ? <Text style={{ color: C.accent, marginBottom: 10 }}>{status}</Text> : null}
         <Button title="Perbarui sekarang" onPress={update} loading={busy} />
       </Card>
       <Card>
