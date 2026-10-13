@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Keyboard, Pressable, ScrollView, Switch, TextInput, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { AddCategorySheet } from '../../components/AddCategorySheet';
 import { DateField } from '../../components/DateField';
@@ -31,6 +31,19 @@ export default function Manual() {
   const categories = useAllCategories();
   const [adding, setAdding] = useState(false);
   const [split, setSplit] = useState(false);
+  const [noteFocus, setNoteFocus] = useState(false);
+
+  // Tinggi papan ketik yang menutupi layar ini: naikkan isi supaya kolom catatan tetap terlihat.
+  const box = useRef<View>(null);
+  const [kb, setKb] = useState(0);
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', (e) => {
+      setNoteFocus(true); // tombol angka disembunyikan selama mengetik catatan
+      box.current?.measureInWindow((_x, y, _w, h) => setKb(Math.max(0, y + h - e.endCoordinates.screenY)));
+    });
+    const hide = Keyboard.addListener('keyboardDidHide', () => { setKb(0); setNoteFocus(false); });
+    return () => { show.remove(); hide.remove(); };
+  }, []);
 
   const calculating = hasOperator(expr);
   const amount = evaluate(expr);
@@ -66,7 +79,7 @@ export default function Manual() {
   const keyBox = { flex: 1, height: 52, margin: 3, borderRadius: 8, backgroundColor: C.key, alignItems: 'center' as const, justifyContent: 'center' as const };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <View ref={box} collapsable={false} style={{ flex: 1, paddingBottom: kb }}>
       <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: 12, paddingBottom: 96 }}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
@@ -113,7 +126,7 @@ export default function Manual() {
           {calculating ? <Text style={{ textAlign: 'right', color: C.muted, marginBottom: 4, paddingRight: 6 }}>= {rupiah(amount)}</Text> : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: C.inputBg, borderRadius: 8, paddingHorizontal: 12, marginBottom: 6 }}>
             <Text style={{ color: C.muted }}>Catatan :</Text>
-            <TextInput value={note} onChangeText={setNote} placeholder="Masukkan catatan..." placeholderTextColor={C.placeholder} style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 8, color: C.text }} />
+            <TextInput value={note} onChangeText={setNote} returnKeyType="done" placeholder="Masukkan catatan..." placeholderTextColor={C.placeholder} style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 8, color: C.text }} />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 6, marginBottom: 6 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -122,7 +135,7 @@ export default function Manual() {
             </View>
             <Switch value={split} onValueChange={setSplit} trackColor={{ true: C.primary, false: C.border }} thumbColor="#fff" />
           </View>
-          {ROWS.map((row, ri) => (
+          {noteFocus ? null : ROWS.map((row, ri) => (
             <View key={ri} style={{ flexDirection: 'row' }}>
               {row.map((k) => {
                 if (k === 'DATE') {
@@ -152,6 +165,6 @@ export default function Manual() {
       ) : (
         <Text style={{ textAlign: 'center', color: C.muted, padding: 14 }}>Pilih kategori untuk mengisi nominal.</Text>
       )}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
