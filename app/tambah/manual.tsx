@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, Switch, TextInput, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { AddCategorySheet } from '../../components/AddCategorySheet';
 import { DateField } from '../../components/DateField';
@@ -29,14 +29,16 @@ export default function Manual() {
   const [date, setDate] = useState(localIso());
   const categories = useAllCategories();
   const [adding, setAdding] = useState(false);
+  const [split, setSplit] = useState(false);
 
   const calculating = hasOperator(expr);
   const amount = evaluate(expr);
 
   const save = () => {
     if (!category || amount <= 0) return;
+    const id = uid();
     upsert({
-      id: uid(),
+      id,
       merchant: category,
       date,
       items: [{ id: uid(), name: note.trim() || category, qty: 1, price: amount, category, assignedTo: [] }],
@@ -48,7 +50,8 @@ export default function Manual() {
       createdAt: Date.now(),
       source: 'manual',
     });
-    router.back();
+    if (split) router.replace(`/receipt/split/${id}`); // lanjut pilih siapa membayar apa
+    else router.back();
   };
 
   const onKey = (k: string) => {
@@ -109,6 +112,13 @@ export default function Manual() {
           <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: C.inputBg, borderRadius: 8, paddingHorizontal: 12, marginBottom: 6 }}>
             <Text style={{ color: C.muted }}>Catatan :</Text>
             <TextInput value={note} onChangeText={setNote} placeholder="Masukkan catatan..." placeholderTextColor={C.placeholder} style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 8, color: C.text }} />
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 6, marginBottom: 6 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name="people-outline" size={18} color={C.muted} />
+              <Text style={{ color: C.text }}>Split bill setelah simpan</Text>
+            </View>
+            <Switch value={split} onValueChange={setSplit} trackColor={{ true: C.primary, false: C.border }} thumbColor="#fff" />
           </View>
           {ROWS.map((row, ri) => (
             <View key={ri} style={{ flexDirection: 'row' }}>
