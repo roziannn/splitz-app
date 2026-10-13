@@ -4,7 +4,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { guessCategory } from '../lib/parse';
 import { uid } from '../lib/format';
 import { C, CAT_COLOR } from '../lib/theme';
-import { MANUAL_CATEGORIES } from '../lib/categories';
+import { useAllCategories } from '../lib/customCategories';
 import { Item } from '../lib/types';
 import { MoneyField } from './MoneyField';
 
@@ -20,6 +20,7 @@ const IconButton = ({ name, color, onPress, label }: { name: keyof typeof Ionico
 
 /** Satu item: nama, jumlah (− / +), harga total, kategori, dan tombol hapus. */
 export function ItemCard({ item, onChange, onDelete }: { item: Item; onChange: (patch: Partial<Item>) => void; onDelete: () => void }) {
+  const categories = useAllCategories();
   const color = CAT_COLOR[item.category] ?? C.muted;
   return (
     <View style={{ backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border, marginBottom: 10, overflow: 'hidden' }}>
@@ -51,7 +52,7 @@ export function ItemCard({ item, onChange, onDelete }: { item: Item; onChange: (
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={{ marginTop: 10 }}>
-          {MANUAL_CATEGORIES.map(({ name: c }) => {
+          {categories.map(({ name: c }) => {
             const active = item.category === c;
             return (
               <Pressable
