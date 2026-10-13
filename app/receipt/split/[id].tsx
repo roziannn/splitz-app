@@ -1,13 +1,15 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, Share, Text, View } from 'react-native';
+import { Alert, ScrollView, Share, View } from 'react-native';
+import { Text } from '../../../components/Text';
 import { Button, Card, Chip, Field } from '../../../components/ui';
 import { prettyDate, rupiah, uid } from '../../../lib/format';
 import { computeSplit } from '../../../lib/split';
 import { useStore } from '../../../lib/store';
-import { C } from '../../../lib/theme';
+import { useColors } from '../../../lib/themeContext';
 
 export default function Split() {
+  const C = useColors();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { get, upsert, flush } = useStore();
@@ -101,13 +103,13 @@ export default function Split() {
             </Card>
           ))}
 
-          <Card style={{ borderColor: C.primary }}>
+          <Card style={{ borderColor: C.accent }}>
             <Text style={{ fontWeight: '800', fontSize: 16, marginBottom: 8 }}>Ringkasan</Text>
             {shares.map((s) => (
               <View key={s.personId} style={{ marginBottom: 10 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                   <Text style={{ fontWeight: '700' }}>{s.name}</Text>
-                  <Text style={{ fontWeight: '800', color: C.primary }}>{rupiah(s.total)}</Text>
+                  <Text style={{ fontWeight: '800', color: C.accent }}>{rupiah(s.total)}</Text>
                 </View>
                 {s.items.map((it, k) => (
                   <Text key={k} style={{ color: C.muted, fontSize: 12 }}>{it.name} · {rupiah(it.amount)}</Text>

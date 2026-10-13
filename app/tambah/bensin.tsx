@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, ScrollView, Text, View } from 'react-native';
+import { Alert, ScrollView, View } from 'react-native';
+import { Text } from '../../components/Text';
 import { DateField } from '../../components/DateField';
 import { MoneyField } from '../../components/MoneyField';
 import { Button, Card, Chip, Field } from '../../components/ui';
@@ -8,10 +9,11 @@ import { localIso } from '../../lib/dates';
 import { FUEL_TYPES, fmtLiters, previousFill, STATIONS } from '../../lib/fuel';
 import { uid } from '../../lib/format';
 import { useStore } from '../../lib/store';
-import { C } from '../../lib/theme';
+import { useColors } from '../../lib/themeContext';
 import { Receipt } from '../../lib/types';
 
 export default function Bensin() {
+  const C = useColors();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const router = useRouter();
   const { receipts, get, upsert } = useStore();
