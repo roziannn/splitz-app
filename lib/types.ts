@@ -6,7 +6,7 @@ export interface Item {
   name: string;
   qty: number;
   price: number; // total harga baris (qty x harga satuan)
-  category: Category;
+  category: string; // salah satu Category (hasil scan) atau kategori input manual
   assignedTo: string[]; // id peserta; kosong = belum dibagi
 }
 

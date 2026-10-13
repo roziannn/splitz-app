@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { localIso } from '../lib/dates';
 import { C } from '../lib/theme';
@@ -25,9 +25,11 @@ interface Props {
   value: string; // '' = kosong
   onChange: (iso: string) => void;
   placeholder?: string;
+  /** Ganti kolom bawaan dengan tombol sendiri; tetap membuka kalender yang sama. */
+  trigger?: (open: () => void) => React.ReactNode;
 }
 
-export function DateField({ label: title, value, onChange, placeholder = 'Pilih tanggal' }: Props) {
+export function DateField({ label: title, value, onChange, placeholder = 'Pilih tanggal', trigger }: Props) {
   const [open, setOpen] = useState(false);
   const start = parse(value) ?? parse(localIso())!;
   const [year, setYear] = useState(start.y);
@@ -56,12 +58,18 @@ export function DateField({ label: title, value, onChange, placeholder = 'Pilih 
   const todayIso = localIso();
 
   return (
-    <View style={{ marginBottom: 10 }}>
-      <Text style={s.label}>{title}</Text>
-      <Pressable onPress={show} style={s.input}>
-        <Text style={{ color: value ? C.text : C.muted }}>{value ? label(value) : placeholder}</Text>
-        <Text style={{ color: C.muted }}>📅</Text>
-      </Pressable>
+    <View style={trigger ? undefined : { marginBottom: 10 }}>
+      {trigger ? (
+        trigger(show)
+      ) : (
+        <>
+          <Text style={s.label}>{title}</Text>
+          <Pressable onPress={show} style={s.input}>
+            <Text style={{ color: value ? C.text : C.muted }}>{value ? label(value) : placeholder}</Text>
+            <Text style={{ color: C.muted }}>📅</Text>
+          </Pressable>
+        </>
+      )}
 
       <Modal transparent animationType="fade" visible={open} onRequestClose={() => setOpen(false)}>
         <Pressable style={s.backdrop} onPress={() => setOpen(false)}>

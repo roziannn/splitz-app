@@ -4,7 +4,8 @@ import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { guessCategory } from '../lib/parse';
 import { uid } from '../lib/format';
 import { C, CAT_COLOR } from '../lib/theme';
-import { CATEGORIES, Item } from '../lib/types';
+import { MANUAL_CATEGORIES } from '../lib/categories';
+import { Item } from '../lib/types';
 import { MoneyField } from './MoneyField';
 
 const IconButton = ({ name, color, onPress, label }: { name: keyof typeof Ionicons.glyphMap; color: string; onPress: () => void; label: string }) => (
@@ -50,7 +51,7 @@ export function ItemCard({ item, onChange, onDelete }: { item: Item; onChange: (
         </View>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" style={{ marginTop: 10 }}>
-          {CATEGORIES.map((c) => {
+          {MANUAL_CATEGORIES.map(({ name: c }) => {
             const active = item.category === c;
             return (
               <Pressable
