@@ -36,6 +36,8 @@ function Shell() {
         <Stack.Screen name="pengaturan/kategori" options={{ title: 'Kategori' }} />
         <Stack.Screen name="pengaturan/mode" options={{ title: 'Mode' }} />
         <Stack.Screen name="pengaturan/backup" options={{ title: 'Ekspor Data' }} />
+        <Stack.Screen name="pengaturan/impor" options={{ title: 'Impor Data' }} />
+        <Stack.Screen name="pengaturan/privasi" options={{ title: 'Kebijakan Privasi' }} />
         <Stack.Screen name="pengaturan/pembaruan" options={{ title: 'Pembaruan Aplikasi' }} />
         <Stack.Screen name="pengaturan/tentang" options={{ title: 'Tentang Scan Struk' }} />
         <Stack.Screen name="tutup-buku" options={{ title: 'Tutup Buku' }} />
