@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Keyboard, Pressable, ScrollView, Switch, TextInput, View } from 'react-native';
 import { Text } from '../../components/Text';
@@ -23,11 +23,14 @@ const ROWS = [
 export default function Manual() {
   const C = useColors();
   const router = useRouter();
-  const { upsert } = useStore();
-  const [category, setCategory] = useState<string | null>(null);
-  const [expr, setExpr] = useState('');
-  const [note, setNote] = useState('');
-  const [date, setDate] = useState(localIso());
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const { upsert, get } = useStore();
+  const existing = editId ? get(editId) : undefined; // ada = mengubah catatan manual yang sudah tersimpan
+  const first = existing?.items[0];
+  const [category, setCategory] = useState<string | null>(first?.category ?? null);
+  const [expr, setExpr] = useState(existing ? String(Math.round(existing.total)) : '');
+  const [note, setNote] = useState(first && first.name !== first.category ? first.name : '');
+  const [date, setDate] = useState(existing?.date ?? localIso());
   const categories = useAllCategories();
   const [adding, setAdding] = useState(false);
   const [split, setSplit] = useState(false);
@@ -50,21 +53,17 @@ export default function Manual() {
 
   const save = () => {
     if (!category || amount <= 0) return;
-    const id = uid();
+    const id = existing?.id ?? uid();
     upsert({
+      ...(existing ?? { tax: 0, service: 0, discount: 0, people: [], createdAt: Date.now() }),
       id,
       merchant: category,
       date,
-      items: [{ id: uid(), name: note.trim() || category, qty: 1, price: amount, category, assignedTo: [] }],
-      tax: 0,
-      service: 0,
-      discount: 0,
+      items: [{ id: first?.id ?? uid(), name: note.trim() || category, qty: 1, price: amount, category, assignedTo: first?.assignedTo ?? [] }],
       total: amount,
-      people: [],
-      createdAt: Date.now(),
       source: 'manual',
     });
-    toast.success('Pengeluaran tersimpan');
+    toast.success(existing ? 'Perubahan disimpan' : 'Pengeluaran tersimpan');
     if (split) router.replace(`/receipt/split/${id}`); // lanjut pilih siapa membayar apa
     else router.back();
   };
@@ -80,6 +79,7 @@ export default function Manual() {
 
   return (
     <View ref={box} collapsable={false} style={{ flex: 1, paddingBottom: kb }}>
+      <Stack.Screen options={{ title: existing ? 'Ubah Pengeluaran' : 'Input Manual' }} />
       <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: 12, paddingBottom: 96 }}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>

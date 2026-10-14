@@ -33,6 +33,7 @@ function Shell() {
         <Stack.Screen name="tambah/manual" options={{ title: 'Input Manual' }} />
         <Stack.Screen name="tambah/bensin" options={{ title: 'Catat Bensin' }} />
         <Stack.Screen name="pengaturan/tampilan" options={{ title: 'Tampilan' }} />
+        <Stack.Screen name="pengaturan/kategori" options={{ title: 'Kategori' }} />
         <Stack.Screen name="pengaturan/mode" options={{ title: 'Mode' }} />
         <Stack.Screen name="pengaturan/backup" options={{ title: 'Ekspor Data' }} />
         <Stack.Screen name="pengaturan/pembaruan" options={{ title: 'Pembaruan Aplikasi' }} />
