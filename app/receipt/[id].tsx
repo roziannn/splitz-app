@@ -3,6 +3,7 @@ import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Image, Modal, Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
+import { ClosedNotice } from '../../components/ClosedNotice';
 import { DateField } from '../../components/DateField';
 import { ItemList } from '../../components/ItemEditor';
 import { MoneyField } from '../../components/MoneyField';
@@ -98,6 +99,7 @@ export default function ReceiptDetail() {
       <Card>
         <Field label="Toko" value={r.merchant} onChangeText={(t) => save({ merchant: t })} />
         <DateField label="Tanggal" value={r.date} onChange={(v) => v && save({ date: v })} />
+        <ClosedNotice date={r.date} />
       </Card>
 
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>

@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
+import { ClosedNotice } from '../../components/ClosedNotice';
 import { DateField } from '../../components/DateField';
 import { MoneyField } from '../../components/MoneyField';
 import { BottomBar, Button, Card, Chip, Field } from '../../components/ui';
@@ -60,6 +61,7 @@ export default function Bensin() {
     <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
       <Card>
         <DateField label="Tanggal" value={date} onChange={(v) => v && setDate(v)} />
+        <ClosedNotice date={date} />
         <Field label="SPBU" value={station} onChangeText={setStation} placeholder="mis. Pertamina Sudirman" />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {STATIONS.map((s) => (
