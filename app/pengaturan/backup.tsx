@@ -27,7 +27,7 @@ export default function EksporData() {
   const [from, setFrom] = useState(() => monthBounds(0)[0]);
   const [to, setTo] = useState(() => monthBounds(0)[1]);
   const [format, setFormat] = useState<ExportFormat>('xlsx');
-  const [busy, setBusy] = useState<'folder' | 'share' | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const count = useMemo(() => countInRange(receipts, from, to), [receipts, from, to]);
   const all = useMemo(() => {
@@ -40,21 +40,23 @@ export default function EksporData() {
 
   const problem = !from || !to ? 'Pilih tanggal dari dan sampai.' : to < from ? 'Tanggal akhir harus setelah tanggal mulai.' : !count ? 'Tidak ada catatan pada rentang ini.' : '';
 
-  const run = async (mode: 'folder' | 'share') => {
+  // Langsung ekspor: buka menu bagikan Android; bila belum tersedia di versi aplikasi ini, simpan ke folder pilihan.
+  const run = async () => {
     if (problem) return toast.error(problem);
-    setBusy(mode);
+    setBusy(true);
+    const input = { format, receipts, from, to, members: family.mode === 'keluarga' ? family.members : [] };
     try {
-      const input = { format, receipts, from, to, members: family.mode === 'keluarga' ? family.members : [] };
-      if (mode === 'share') {
+      try {
         await exportShare(input);
-      } else {
+      } catch (e: any) {
+        if (!String(e?.message).includes('versi aplikasi terbaru')) throw e;
         const name = await exportToFolder(input);
         if (name) toast.success(`Tersimpan: ${name}`);
       }
     } catch (e: any) {
       toast.error(`Ekspor gagal: ${e?.message ?? 'coba lagi'}`);
     } finally {
-      setBusy(null);
+      setBusy(false);
     }
   };
 
@@ -102,8 +104,7 @@ export default function EksporData() {
         </Text>
       </Card>
 
-      <Button title="Simpan ke folder" onPress={() => run('folder')} loading={busy === 'folder'} disabled={!!busy || !!problem} style={{ marginBottom: 8 }} />
-      <Button title="Bagikan atau cetak" kind="ghost" onPress={() => run('share')} loading={busy === 'share'} disabled={!!busy || !!problem} />
+      <Button title={`Ekspor ke ${format === 'pdf' ? 'PDF' : 'Excel'}`} onPress={run} loading={busy} disabled={busy || !!problem} />
     </ScrollView>
   );
 }
