@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Keyboard, Pressable, ScrollView, Switch, TextInput, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { AddCategorySheet } from '../../components/AddCategorySheet';
+import { ClosedNotice } from '../../components/ClosedNotice';
 import { DateField } from '../../components/DateField';
 import { evaluate, display, hasOperator, press } from '../../lib/calc';
 import { isCustom, removeCategory, useAllCategories } from '../../lib/customCategories';
@@ -123,6 +124,7 @@ export default function Manual() {
             <Text style={{ color: C.muted, fontWeight: '600' }}>{category}</Text>
             <Text style={{ fontSize: 30, fontWeight: '600', color: C.text }} numberOfLines={1} adjustsFontSizeToFit>{display(expr)}</Text>
           </View>
+          <ClosedNotice date={date} />
           {calculating ? <Text style={{ textAlign: 'right', color: C.muted, marginBottom: 4, paddingRight: 6 }}>= {rupiah(amount)}</Text> : null}
           <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: C.inputBg, borderRadius: 8, paddingHorizontal: 12, marginBottom: 6 }}>
             <Text style={{ color: C.muted }}>Catatan :</Text>
