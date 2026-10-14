@@ -4,7 +4,7 @@ import { memo, useCallback, useDeferredValue, useMemo, useRef, useState } from '
 import { Alert, Animated, FlatList, Image, PanResponder, Pressable, View } from 'react-native';
 import { DateField, localIso } from '../../components/DateField';
 import { Text } from '../../components/Text';
-import { Chip, Empty } from '../../components/ui';
+import { Empty } from '../../components/ui';
 import { prettyDate, rupiah } from '../../lib/format';
 import { imagePath } from '../../lib/images';
 import { isClosedDate, useClosings } from '../../lib/closing';
@@ -14,7 +14,7 @@ import { useColors } from '../../lib/themeContext';
 import { toast } from '../../lib/toast';
 import { Receipt } from '../../lib/types';
 
-const PRESETS = ['Semua', 'Hari ini', '7 hari', '30 hari', 'Bulan ini'] as const;
+const PRESETS = ['Hari ini', '7 hari', '30 hari', 'Bulan ini', 'Semua'] as const;
 type Preset = (typeof PRESETS)[number];
 
 const shiftDays = (n: number) => {
@@ -127,6 +127,7 @@ const Row = memo(function Row({ r, onEdit, onSplit, onDelete, locked }: RowProps
 });
 
 export default function History() {
+  const C = useColors();
   const [preset, setPreset] = useState<Preset>('Semua');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -178,10 +179,15 @@ export default function History() {
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={
         <View style={{ marginBottom: 8 }}>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-            {PRESETS.map((p) => (
-              <Chip key={p} label={p} active={preset === p && (p !== 'Semua' || (!from && !to))} onPress={() => pick(p)} />
-            ))}
+          <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: C.border, marginBottom: 14 }}>
+            {PRESETS.map((p) => {
+              const active = preset === p && (p !== 'Semua' || (!from && !to));
+              return (
+                <Pressable key={p} onPress={() => pick(p)} accessibilityRole="tab" accessibilityState={{ selected: active }} style={{ flex: 1, alignItems: 'center', paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: active ? C.primary : 'transparent', marginBottom: -1 }}>
+                  <Text style={{ fontSize: 13, fontWeight: active ? '700' : '500', color: active ? C.accent : C.muted }} numberOfLines={1}>{p}</Text>
+                </Pressable>
+              );
+            })}
           </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <View style={{ flex: 1 }}>
