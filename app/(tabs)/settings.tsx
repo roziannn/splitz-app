@@ -35,10 +35,12 @@ export default function Settings() {
     [
       { icon: 'lock-closed-outline', label: 'Tutup buku', href: '/tutup-buku' },
       { icon: 'download-outline', label: 'Ekspor data', value: 'Excel · PDF', href: '/pengaturan/backup', excel: true },
+      { icon: 'cloud-upload-outline', label: 'Impor data', value: 'Excel', href: '/pengaturan/impor', excel: true },
     ],
     [
       { icon: 'cloud-download-outline', label: 'Pembaruan aplikasi', value: `v${currentVersion()}`, href: '/pengaturan/pembaruan' },
       { icon: 'information-circle-outline', label: 'Tentang scan struk', href: '/pengaturan/tentang' },
+      { icon: 'shield-checkmark-outline', label: 'Kebijakan privasi', href: '/pengaturan/privasi' },
     ],
   ];
 
