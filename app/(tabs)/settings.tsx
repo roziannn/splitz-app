@@ -1,9 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { useFamily } from '../../lib/family';
-import { useStore } from '../../lib/store';
 import { useColors, useThemeMode } from '../../lib/themeContext';
 import { currentVersion } from '../../lib/update';
 
@@ -13,6 +12,7 @@ interface Item {
   label: string;
   value?: string;
   href: string;
+  excel?: boolean; // ikon Excel hijau
 }
 
 const THEME_LABEL = { system: 'Ikuti sistem', light: 'Terang', dark: 'Gelap' } as const;
@@ -23,7 +23,6 @@ export default function Settings() {
   const router = useRouter();
   const { mode } = useThemeMode();
   const family = useFamily();
-  const { receipts } = useStore();
 
   const groups: Item[][] = [
     [
@@ -32,7 +31,7 @@ export default function Settings() {
     ],
     [
       { icon: 'lock-closed-outline', label: 'Tutup buku', href: '/tutup-buku' },
-      { icon: 'download-outline', label: 'Backup data', value: `${receipts.length} catatan`, href: '/pengaturan/backup' },
+      { icon: 'download-outline', label: 'Ekspor data', value: 'Excel · PDF', href: '/pengaturan/backup', excel: true },
     ],
     [
       { icon: 'cloud-download-outline', label: 'Pembaruan aplikasi', value: `v${currentVersion()}`, href: '/pengaturan/pembaruan' },
@@ -51,7 +50,7 @@ export default function Settings() {
               android_ripple={{ color: C.border }}
               style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 14, gap: 14, borderTopWidth: i ? 1 : 0, borderTopColor: C.border }}>
               <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name={it.icon} size={19} color={C.accent} />
+                {it.excel ? <MaterialCommunityIcons name="file-excel" size={21} color="#217346" /> : <Ionicons name={it.icon} size={19} color={C.accent} />}
               </View>
               <Text style={{ flex: 1, fontSize: 15, fontWeight: '600' }}>{it.label}</Text>
               {it.value ? <Text style={{ color: C.muted, fontSize: 13 }}>{it.value}</Text> : null}
