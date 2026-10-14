@@ -2,6 +2,7 @@ import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 import { Text } from './Text';
 import { Palette } from '../lib/theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors, useStyles } from '../lib/themeContext';
 
 const styles = (C: Palette) =>
@@ -62,6 +63,17 @@ export const Empty = ({ text }: { text: string }) => {
   return (
     <View style={{ alignItems: 'center', padding: 32 }}>
       <Text style={{ color: C.muted, textAlign: 'center' }}>{text}</Text>
+    </View>
+  );
+};
+
+/** Bilah aksi yang menempel di bawah layar: tombol utama selalu terjangkau jempol. */
+export const BottomBar = ({ children }: { children: React.ReactNode }) => {
+  const C = useColors();
+  const insets = useSafeAreaInsets();
+  return (
+    <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10 + insets.bottom, backgroundColor: C.card, borderTopWidth: 1, borderTopColor: C.border }}>
+      {children}
     </View>
   );
 };

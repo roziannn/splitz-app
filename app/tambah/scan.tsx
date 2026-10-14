@@ -1,9 +1,10 @@
 import * as ImagePicker from 'expo-image-picker';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Image, ScrollView } from 'react-native';
+import { Image, View } from 'react-native';
 import { Text } from '../../components/Text';
-import { Button, Card } from '../../components/ui';
+import { BottomBar, Button } from '../../components/ui';
 import { saveReceiptImage } from '../../lib/images';
 import { scanReceipt } from '../../lib/ocr';
 import { useStore } from '../../lib/store';
@@ -41,17 +42,31 @@ export default function Scan() {
   };
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16 }}>
-      <Card>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: C.text }}>Scan struk</Text>
-        <Text style={{ color: C.muted, marginTop: 4 }}>
-          Foto struk belanja, teks struk dibaca otomatis di HP, lalu item, harga, pajak, dan kategorinya diisi. Periksa hasilnya sebelum disimpan.
-        </Text>
-      </Card>
-      {uri ? <Image source={{ uri }} style={{ width: '100%', height: 360, borderRadius: 16, marginBottom: 12 }} resizeMode="contain" /> : null}
-      <Button title="📷  Ambil foto struk" onPress={() => pick(true)} style={{ marginBottom: 10 }} />
-      <Button title="🖼️  Pilih dari galeri" kind="ghost" onPress={() => pick(false)} style={{ marginBottom: 10 }} />
-      {uri ? <Button title="Ekstrak data struk" onPress={run} loading={busy} /> : null}
-    </ScrollView>
+    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, padding: 16, justifyContent: 'center' }}>
+        {uri ? (
+          <Image source={{ uri }} style={{ flex: 1, borderRadius: 16 }} resizeMode="contain" />
+        ) : (
+          <View style={{ alignItems: 'center', paddingHorizontal: 24 }}>
+            <Ionicons name="scan-outline" size={64} color={C.muted} />
+            <Text style={{ fontWeight: '700', fontSize: 16, marginTop: 12 }}>Foto struk belanja</Text>
+            <Text style={{ color: C.muted, textAlign: 'center', marginTop: 4 }}>Item, harga, pajak, dan kategori terisi otomatis. Hasilnya bisa dikoreksi.</Text>
+          </View>
+        )}
+      </View>
+      <BottomBar>
+        {uri ? (
+          <>
+            <Button title="Ganti foto" kind="ghost" onPress={() => setUri(null)} disabled={busy} style={{ flex: 1 }} />
+            <Button title="Ekstrak data" onPress={run} loading={busy} style={{ flex: 2 }} />
+          </>
+        ) : (
+          <>
+            <Button title="Galeri" kind="ghost" onPress={() => pick(false)} style={{ flex: 1 }} />
+            <Button title="Ambil foto" onPress={() => pick(true)} style={{ flex: 2 }} />
+          </>
+        )}
+      </BottomBar>
+    </View>
   );
 }

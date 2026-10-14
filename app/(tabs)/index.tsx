@@ -3,7 +3,7 @@ import { useDeferredValue, useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { ChartBoundary, Donut, LineChart } from '../../components/charts';
-import { Button, Card, Chip, Empty } from '../../components/ui';
+import { Button, Card, Empty } from '../../components/ui';
 import { animate } from '../../lib/anim';
 import { Closing, reopenBook, useClosings } from '../../lib/closing';
 import { buildFamilyReport } from '../../lib/familyReport';
@@ -103,10 +103,15 @@ export default function Dashboard() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 }}>
-        {RANGES.map((r) => (
-          <Chip key={r.key} label={r.label} active={range === r.key} onPress={() => setRange(r.key)} />
-        ))}
+      <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: C.border, marginBottom: 14 }}>
+        {RANGES.map((r) => {
+          const active = range === r.key;
+          return (
+            <Pressable key={r.key} onPress={() => setRange(r.key)} accessibilityRole="tab" accessibilityState={{ selected: active }} style={{ flex: 1, alignItems: 'center', paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: active ? C.primary : 'transparent', marginBottom: -1 }}>
+              <Text style={{ fontSize: 13, fontWeight: active ? '700' : '500', color: active ? C.accent : C.muted }} numberOfLines={1}>{r.label}</Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       <Card style={{ backgroundColor: C.primary, borderColor: C.primary }}>
@@ -117,7 +122,6 @@ export default function Dashboard() {
 
       <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
         <Tile label="Jumlah struk" value={String(rep.count)} />
-        {range !== 'mtd' ? <Tile label="Rata-rata / hari" value={rupiah(rep.avgPerDay)} /> : null}
         <Tile label="Terbesar" value={top ? top.name : '-'} sub={top ? `${top.pct.toFixed(0)}% total` : undefined} />
       </View>
 
@@ -210,7 +214,7 @@ export default function Dashboard() {
         </>
       )}
 
-      {range === 'mtd' ? (
+      {range === 'all' ? (
         <Card>
           <Text style={{ fontWeight: '700', marginBottom: 2 }}>Tutup buku</Text>
           <Text style={{ color: C.muted, fontSize: 12, marginBottom: 10 }}>Pilih awal dan akhir periode, lalu kunci catatannya. Ringkasannya tersimpan di sini.</Text>
