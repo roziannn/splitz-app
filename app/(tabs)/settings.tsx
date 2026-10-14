@@ -2,6 +2,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
+import { useAllCategories } from '../../lib/customCategories';
 import { useFamily } from '../../lib/family';
 import { useColors, useThemeMode } from '../../lib/themeContext';
 import { currentVersion } from '../../lib/update';
@@ -23,10 +24,12 @@ export default function Settings() {
   const router = useRouter();
   const { mode } = useThemeMode();
   const family = useFamily();
+  const categories = useAllCategories();
 
   const groups: Item[][] = [
     [
       { icon: 'color-palette-outline', label: 'Tampilan', value: THEME_LABEL[mode], href: '/pengaturan/tampilan' },
+      { icon: 'shapes-outline', label: 'Kategori', value: `${categories.length}`, href: '/pengaturan/kategori' },
       { icon: 'people-outline', label: 'Mode', value: family.mode === 'keluarga' ? `Keluarga · ${family.members.length}` : 'Pribadi', href: '/pengaturan/mode' },
     ],
     [
