@@ -1,14 +1,23 @@
 import '../lib/crashGuard'; // harus paling atas agar kesalahan saat memuat modul lain ikut tertangkap
 import { useEffect } from 'react';
+import { View } from 'react-native';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavThemeProvider, type ErrorBoundaryProps } from 'expo-router';
 import { Pressable, ScrollView, Text as RNText } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { StoreProvider } from '../lib/store';
+import { Onboarding } from '../components/Onboarding';
+import { markOnboarded, useOnboarded } from '../lib/onboarding';
+import { StoreProvider, useStore } from '../lib/store';
 import { ThemeProvider, useThemeMode } from '../lib/themeContext';
 import { ToastHost } from '../lib/toast';
 
 function Shell() {
   const { scheme, colors: C } = useThemeMode();
+  const onboarded = useOnboarded();
+  const { ready, receipts } = useStore();
+  // Pengguna lama (sudah punya catatan) tidak perlu panduan pertama kali; panduan tetap ada lewat ikon ? di Laporan.
+  useEffect(() => {
+    if (onboarded === false && ready && receipts.length > 0) markOnboarded();
+  }, [onboarded, ready, receipts.length]);
   // Warna jendela di belakang layar ikut tema, supaya tidak ada kilatan putih saat transisi.
   useEffect(() => {
     try {
@@ -40,10 +49,16 @@ function Shell() {
         <Stack.Screen name="pengaturan/privasi" options={{ title: 'Kebijakan Privasi' }} />
         <Stack.Screen name="pengaturan/pembaruan" options={{ title: 'Pembaruan Aplikasi' }} />
         <Stack.Screen name="pengaturan/tentang" options={{ title: 'Tentang Scan Struk' }} />
+        <Stack.Screen name="tutorial" options={{ title: 'Panduan' }} />
         <Stack.Screen name="tutup-buku" options={{ title: 'Tutup Buku' }} />
         <Stack.Screen name="receipt/[id]" options={{ title: 'Detail Struk' }} />
         <Stack.Screen name="receipt/split/[id]" options={{ title: 'Split Bill' }} />
       </Stack>
+      {onboarded === false && ready && receipts.length === 0 ? (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50 }}>
+          <Onboarding onDone={markOnboarded} />
+        </View>
+      ) : null}
       <ToastHost />
     </NavThemeProvider>
   );
