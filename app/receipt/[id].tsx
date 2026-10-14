@@ -6,7 +6,8 @@ import { Text } from '../../components/Text';
 import { DateField } from '../../components/DateField';
 import { ItemList } from '../../components/ItemEditor';
 import { MoneyField } from '../../components/MoneyField';
-import { Button, Card, Field } from '../../components/ui';
+import { BottomBar, Button, Card, Field } from '../../components/ui';
+import { Ionicons } from '@expo/vector-icons';
 import { rupiah } from '../../lib/format';
 import { animate } from '../../lib/anim';
 import { deleteReceiptImage, imagePath, saveReceiptImage } from '../../lib/images';
@@ -81,21 +82,18 @@ export default function ReceiptDetail() {
 
   return (
     <View style={{ flex: 1 }}>
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 96 }} keyboardShouldPersistTaps="handled">
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }} keyboardShouldPersistTaps="handled">
       {r.image ? (
-        <Card>
+        <View style={{ marginBottom: 12 }}>
           <Pressable onPress={() => setViewer(true)}>
-            <Image source={{ uri: imagePath(r.image) }} style={{ width: '100%', height: 200, borderRadius: 12, backgroundColor: C.border }} resizeMode="cover" />
-            <Text style={{ color: C.muted, fontSize: 12, marginTop: 6 }}>Ketuk gambar untuk memperbesar</Text>
+            <Image source={{ uri: imagePath(r.image) }} style={{ width: '100%', height: 160, borderRadius: 14, backgroundColor: C.border }} resizeMode="cover" />
           </Pressable>
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
-            <Button title="Ganti foto" kind="ghost" onPress={choosePhoto} style={{ flex: 1 }} />
-            <Button title="Hapus foto" kind="ghost" onPress={removePhoto} style={{ flex: 1 }} />
+          <View style={{ flexDirection: 'row', gap: 18, marginTop: 8 }}>
+            <Pressable onPress={choosePhoto} hitSlop={8}><Text style={{ color: C.accent, fontWeight: '600' }}>Ganti foto</Text></Pressable>
+            <Pressable onPress={removePhoto} hitSlop={8}><Text style={{ color: C.muted, fontWeight: '600' }}>Hapus foto</Text></Pressable>
           </View>
-        </Card>
-      ) : (
-        <Button title="📷  Tambah foto struk" kind="ghost" onPress={choosePhoto} style={{ marginBottom: 12 }} />
-      )}
+        </View>
+      ) : null}
 
       <Card>
         <Field label="Toko" value={r.merchant} onChangeText={(t) => save({ merchant: t })} />
@@ -121,23 +119,12 @@ export default function ReceiptDetail() {
         <Text style={{ fontSize: 22, fontWeight: '800', color: C.accent }}>Total {rupiah(r.total)}</Text>
       </Card>
 
-      {canSplit(r) ? (
-        <Button
-          title={r.people.length ? `Lihat / ubah Split Bill (${r.people.length} orang)` : 'Split Bill'}
-          onPress={() => router.push(`/receipt/split/${r.id}`)}
-          style={{ marginBottom: 10 }}
-        />
+      {!r.image ? (
+        <Pressable onPress={choosePhoto} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: C.border }}>
+          <Ionicons name="camera-outline" size={18} color={C.muted} />
+          <Text style={{ color: C.muted, fontWeight: '600' }}>Tambah foto struk</Text>
+        </Pressable>
       ) : null}
-      <Button
-        title="Hapus struk"
-        kind="danger"
-        onPress={() =>
-          Alert.alert('Hapus struk?', 'Tindakan ini tidak bisa dibatalkan.', [
-            { text: 'Batal', style: 'cancel' },
-            { text: 'Hapus', style: 'destructive', onPress: () => { remove(r.id); toast.success('Struk dihapus'); router.back(); } },
-          ])
-        }
-      />
 
       <Modal visible={viewer} transparent animationType="fade" onRequestClose={() => setViewer(false)}>
         <Pressable onPress={() => setViewer(false)} style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center' }}>
@@ -147,8 +134,29 @@ export default function ReceiptDetail() {
       </Modal>
     </ScrollView>
 
+    <BottomBar>
+      <Pressable
+        onPress={() =>
+          Alert.alert('Hapus struk?', 'Tindakan ini tidak bisa dibatalkan.', [
+            { text: 'Batal', style: 'cancel' },
+            { text: 'Hapus', style: 'destructive', onPress: () => { remove(r.id); toast.success('Struk dihapus'); router.back(); } },
+          ])
+        }
+        accessibilityLabel="Hapus struk"
+        style={{ width: 48, height: 48, borderRadius: 12, borderWidth: 1, borderColor: C.danger, alignItems: 'center', justifyContent: 'center' }}>
+        <Ionicons name="trash-outline" size={22} color={C.danger} />
+      </Pressable>
+      {canSplit(r) ? (
+        <Button
+          title={r.people.length ? `Split Bill (${r.people.length} orang)` : 'Split Bill'}
+          onPress={() => router.push(`/receipt/split/${r.id}`)}
+          style={{ flex: 1 }}
+        />
+      ) : null}
+    </BottomBar>
+
     {undo ? (
-      <View style={{ position: 'absolute', left: 16, right: 16, bottom: 16, backgroundColor: C.snackBg, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 6 }}>
+      <View style={{ position: 'absolute', left: 16, right: 16, bottom: 84, backgroundColor: C.snackBg, borderRadius: 14, paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 6 }}>
         <Text style={{ color: C.snackText }} numberOfLines={1}>{undo.item.name ? `"${undo.item.name}" dihapus` : 'Item dihapus'}</Text>
         <Pressable onPress={restoreItem} hitSlop={10}>
           <Text style={{ color: C.snackAction, fontWeight: '800' }}>URUNGKAN</Text>

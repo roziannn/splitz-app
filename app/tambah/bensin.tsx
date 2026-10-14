@@ -4,7 +4,7 @@ import { ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { DateField } from '../../components/DateField';
 import { MoneyField } from '../../components/MoneyField';
-import { Button, Card, Chip, Field } from '../../components/ui';
+import { BottomBar, Button, Card, Chip, Field } from '../../components/ui';
 import { localIso } from '../../lib/dates';
 import { FUEL_TYPES, fmtLiters, previousFill, STATIONS } from '../../lib/fuel';
 import { uid } from '../../lib/format';
@@ -56,6 +56,7 @@ export default function Bensin() {
   };
 
   return (
+    <View style={{ flex: 1 }}>
     <ScrollView contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
       <Card>
         <DateField label="Tanggal" value={date} onChange={(v) => v && setDate(v)} />
@@ -102,8 +103,10 @@ export default function Bensin() {
           <Text style={{ color: C.muted, fontSize: 12 }}>Isi odometer di tiap pengisian untuk melihat jarak dan perkiraan konsumsi.</Text>
         )}
       </Card>
-
-      <Button title={existing ? 'Simpan perubahan' : 'Simpan'} onPress={save} />
     </ScrollView>
+    <BottomBar>
+      <Button title={existing ? 'Simpan perubahan' : 'Simpan'} onPress={save} style={{ flex: 1 }} />
+    </BottomBar>
+    </View>
   );
 }
