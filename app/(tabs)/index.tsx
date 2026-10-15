@@ -102,8 +102,9 @@ export default function Dashboard() {
       : `${rep.delta > 0 ? '▲' : rep.delta < 0 ? '▼' : '•'} ${Math.abs(rep.delta).toFixed(0)}% vs periode lalu`;
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 32 }}>
-      <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: C.border, marginBottom: 14 }}>
+    <ScrollView contentContainerStyle={{ paddingBottom: 32 }} stickyHeaderIndices={[0]}>
+      <View style={{ backgroundColor: C.bg, paddingHorizontal: 16, paddingTop: 8 }}>
+      <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: C.border }}>
         {RANGES.map((r) => {
           const active = range === r.key;
           return (
@@ -113,7 +114,9 @@ export default function Dashboard() {
           );
         })}
       </View>
+      </View>
 
+      <View style={{ padding: 16 }}>
       <Card style={{ backgroundColor: C.primary, borderColor: C.primary }}>
         <Text style={{ color: '#ccfbf1' }}>Total pengeluaran · {meta.long}</Text>
         <Text style={{ color: '#fff', fontSize: 34, fontWeight: '800', marginVertical: 2 }}>{rupiah(rep.total)}</Text>
@@ -227,6 +230,7 @@ export default function Dashboard() {
           ) : null}
         </Card>
       ) : null}
+      </View>
     </ScrollView>
   );
 }

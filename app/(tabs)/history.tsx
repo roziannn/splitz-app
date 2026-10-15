@@ -2,10 +2,11 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { memo, useCallback, useDeferredValue, useMemo, useRef, useState } from 'react';
 import { Alert, Animated, FlatList, Image, PanResponder, Pressable, View } from 'react-native';
+import { useAllCategories } from '../../lib/customCategories';
 import { DateField, localIso } from '../../components/DateField';
 import { Text } from '../../components/Text';
 import { Empty } from '../../components/ui';
-import { prettyDate, rupiah } from '../../lib/format';
+import { rupiah } from '../../lib/format';
 import { imagePath } from '../../lib/images';
 import { isClosedDate, useClosings } from '../../lib/closing';
 import { editHref } from '../../lib/routes';
@@ -32,18 +33,30 @@ function presetRange(p: Preset): [string, string] {
   return ['', ''];
 }
 
+const BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+/** "2026-10-15" -> "15 Okt 2026" */
+const groupDate = (iso: string) => {
+  const [y, m, d] = iso.split('-');
+  const mi = Number(m) - 1;
+  return BULAN[mi] ? `${Number(d)} ${BULAN[mi]} ${y}` : iso;
+};
+
+type ListItem = { kind: 'head'; date: string; count: number } | { kind: 'row'; r: Receipt };
+
 interface RowProps {
   r: Receipt;
   onEdit: (r: Receipt) => void;
   onSplit: (id: string) => void;
   onDelete: (id: string, name: string, date: string) => void;
   locked: boolean;
+  icon: string;
+  tint: string;
 }
 
 const REVEAL = 96; // lebar tombol hapus yang muncul saat digeser ke kiri
 
 // Dibungkus memo: baris yang datanya tidak berubah tidak digambar ulang saat daftar lain berubah.
-const Row = memo(function Row({ r, onEdit, onSplit, onDelete, locked }: RowProps) {
+const Row = memo(function Row({ r, onEdit, onSplit, onDelete, locked, icon, tint }: RowProps) {
   const C = useColors();
   const x = useRef(new Animated.Value(0)).current;
   const open = useRef(false);
@@ -94,8 +107,8 @@ const Row = memo(function Row({ r, onEdit, onSplit, onDelete, locked }: RowProps
                 onPress={() => onEdit(r)}
                 hitSlop={8}
                 accessibilityLabel="Edit struk"
-                style={{ position: 'absolute', right: -6, bottom: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: C.primary, borderWidth: 2, borderColor: C.card, alignItems: 'center', justifyContent: 'center' }}>
-                <Ionicons name="pencil" size={12} color="#fff" />
+                style={{ position: 'absolute', right: -6, bottom: -6, width: 24, height: 24, borderRadius: 12, backgroundColor: tint, borderWidth: 2, borderColor: C.card, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name={icon as any} size={12} color="#fff" />
               </Pressable>
             </View>
           ) : (
@@ -103,8 +116,8 @@ const Row = memo(function Row({ r, onEdit, onSplit, onDelete, locked }: RowProps
               onPress={() => onEdit(r)}
               hitSlop={8}
               accessibilityLabel="Edit struk"
-              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name="pencil" size={18} color={C.accent} />
+              style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: tint + '22', alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={icon as any} size={18} color={tint} />
             </Pressable>
           )}
           <View style={{ flex: 1 }}>
@@ -112,7 +125,7 @@ const Row = memo(function Row({ r, onEdit, onSplit, onDelete, locked }: RowProps
               <Text style={{ fontWeight: '700', color: C.text }}>{r.merchant}</Text>
               {locked ? <Ionicons name="lock-closed" size={12} color={C.muted} /> : null}
             </View>
-            <Text style={{ color: C.muted, fontSize: 12 }}>{prettyDate(r.date)} · {r.items.length} item{r.people.length ? ` · split ${r.people.length} orang` : ''}</Text>
+            <Text style={{ color: C.muted, fontSize: 12 }}>{r.items.length} item{r.people.length ? ` · split ${r.people.length} orang` : ''}</Text>
             {r.people.length ? (
               <Pressable onPress={() => onSplit(r.id)} hitSlop={6}>
                 <Text style={{ color: C.accent, fontSize: 12, fontWeight: '600', marginTop: 2 }}>Lihat split bill ›</Text>
@@ -153,6 +166,32 @@ export default function History() {
     [receipts, from, to],
   );
 
+  const categories = useAllCategories();
+  // Ikon kartu = kategori dengan total harga terbesar di struk itu.
+  const catOf = useCallback(
+    (r: Receipt) => {
+      const sum: Record<string, number> = {};
+      for (const i of r.items) sum[i.category] = (sum[i.category] ?? 0) + i.price;
+      const top = Object.entries(sum).sort((a, b) => b[1] - a[1])[0]?.[0];
+      const c = categories.find((k) => k.name === top) ?? categories.find((k) => k.name === 'Lainnya');
+      return { icon: c?.icon ?? 'ellipsis-horizontal-circle-outline', tint: c?.color ?? C.accent };
+    },
+    [categories, C.accent],
+  );
+  const data = useMemo(() => {
+    const out: ListItem[] = [];
+    let head: { kind: 'head'; date: string; count: number } | undefined;
+    for (const r of sorted) {
+      if (!head || head.date !== r.date) {
+        head = { kind: 'head', date: r.date, count: 0 };
+        out.push(head);
+      }
+      head.count++;
+      out.push({ kind: 'row', r });
+    }
+    return out;
+  }, [sorted]);
+
   const locked = useCallback((date: string) => isClosedDate(date, closings), [closings]);
   const onEdit = useCallback(
     (r: Receipt) => (locked(r.date) ? toast.error('Periode ini sudah ditutup. Buka kembali di Laporan untuk mengubah.') : router.push(editHref(r) as any)),
@@ -169,26 +208,27 @@ export default function History() {
   );
 
   return (
+    <View style={{ flex: 1 }}>
+      <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: C.border, backgroundColor: C.bg, paddingHorizontal: 16, paddingTop: 8 }}>
+        {PRESETS.map((p) => {
+          const active = preset === p && (p !== 'Semua' || (!from && !to));
+          return (
+            <Pressable key={p} onPress={() => pick(p)} accessibilityRole="tab" accessibilityState={{ selected: active }} style={{ flex: 1, alignItems: 'center', paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: active ? C.primary : 'transparent', marginBottom: -1 }}>
+              <Text style={{ fontSize: 13, fontWeight: active ? '700' : '500', color: active ? C.accent : C.muted }} numberOfLines={1}>{p}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
     <FlatList
-      data={sorted}
-      keyExtractor={(r) => r.id}
-      contentContainerStyle={{ padding: 16, flexGrow: 1 }}
+      data={data}
+      keyExtractor={(x) => (x.kind === 'head' ? 'h' + x.date : x.r.id)}
+      contentContainerStyle={{ padding: 16, paddingTop: 12, flexGrow: 1 }}
       initialNumToRender={8}
       windowSize={7}
       removeClippedSubviews
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={
         <View style={{ marginBottom: 8 }}>
-          <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: C.border, marginBottom: 14 }}>
-            {PRESETS.map((p) => {
-              const active = preset === p && (p !== 'Semua' || (!from && !to));
-              return (
-                <Pressable key={p} onPress={() => pick(p)} accessibilityRole="tab" accessibilityState={{ selected: active }} style={{ flex: 1, alignItems: 'center', paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: active ? C.primary : 'transparent', marginBottom: -1 }}>
-                  <Text style={{ fontSize: 13, fontWeight: active ? '700' : '500', color: active ? C.accent : C.muted }} numberOfLines={1}>{p}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <View style={{ flex: 1 }}>
               <DateField label="Dari" value={from} onChange={edit(setFrom)} placeholder="Pilih tanggal" />
@@ -201,7 +241,17 @@ export default function History() {
       }
       ListEmptyComponent={<Empty text={receipts.length ? 'Tidak ada struk di rentang tanggal ini.' : 'Belum ada struk.'} />}
       extraData={closings}
-      renderItem={({ item }) => <Row r={item} onEdit={onEdit} onSplit={onSplit} onDelete={onDelete} locked={locked(item.date)} />}
+      renderItem={({ item }) =>
+        item.kind === 'head' ? (
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 6, marginBottom: 8 }}>
+            <Text style={{ fontWeight: '700', color: C.text }}>{groupDate(item.date)}</Text>
+            <Text style={{ color: C.muted, fontSize: 12 }}>{item.count} transaksi pengeluaran</Text>
+          </View>
+        ) : (
+          <Row r={item.r} onEdit={onEdit} onSplit={onSplit} onDelete={onDelete} locked={locked(item.r.date)} {...catOf(item.r)} />
+        )
+      }
     />
+    </View>
   );
 }
