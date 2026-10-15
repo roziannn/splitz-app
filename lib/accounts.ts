@@ -21,7 +21,7 @@ export interface Provider {
   mark: string; // tulisan pada logo
 }
 
-/** Pilihan bank dan e-wallet. Logo digambar sebagai lencana berwarna merek (bukan berkas logo resmi). */
+/** Pilihan bank dan e-wallet. Bank yang ada di BANK_LOGOS (lib/bankLogos.ts) tampil dengan logo SVG-nya; sisanya sebagai lencana berwarna merek. */
 export const PROVIDERS: Provider[] = [
   { key: 'bca', label: 'BCA', type: 'bank', bg: '#0060AF', fg: '#FFFFFF', mark: 'BCA' },
   { key: 'mandiri', label: 'Mandiri', type: 'bank', bg: '#003D79', fg: '#FCB017', mark: 'mandiri' },
@@ -29,6 +29,11 @@ export const PROVIDERS: Provider[] = [
   { key: 'nobu', label: 'Nobu', type: 'bank', bg: '#B71C1C', fg: '#FFFFFF', mark: 'nobu' },
   { key: 'jago', label: 'Jago', type: 'bank', bg: '#FFC82C', fg: '#1F2937', mark: 'jago' },
   { key: 'seabank', label: 'SeaBank', type: 'bank', bg: '#F26B21', fg: '#FFFFFF', mark: 'SeaBank' },
+  { key: 'bsi', label: 'BSI', type: 'bank', bg: '#00A39D', fg: '#FFFFFF', mark: 'BSI' },
+  { key: 'btn', label: 'BTN', type: 'bank', bg: '#0069AB', fg: '#FFFFFF', mark: 'BTN' },
+  { key: 'cimb', label: 'CIMB Niaga', type: 'bank', bg: '#790008', fg: '#FFFFFF', mark: 'CIMB' },
+  { key: 'danamon', label: 'Danamon', type: 'bank', bg: '#F05A22', fg: '#FFFFFF', mark: 'Danamon' },
+  { key: 'superbank', label: 'Superbank', type: 'bank', bg: '#012A31', fg: '#AFEE01', mark: 'Superbank' },
   { key: 'shopeepay', label: 'ShopeePay', type: 'ewallet', bg: '#EE4D2D', fg: '#FFFFFF', mark: 'ShopeePay' },
   { key: 'gopay', label: 'GoPay', type: 'ewallet', bg: '#00AED6', fg: '#FFFFFF', mark: 'gopay' },
   { key: 'ovo', label: 'OVO', type: 'ewallet', bg: '#4C3494', fg: '#FFFFFF', mark: 'OVO' },
