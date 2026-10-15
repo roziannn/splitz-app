@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, Keyboard, Pressable, ScrollView, Switch, TextInput, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { AccountPicker } from '../../components/AccountPicker';
-import { AddCategorySheet } from '../../components/AddCategorySheet';
 import { ClosedNotice } from '../../components/ClosedNotice';
 import { DateField } from '../../components/DateField';
 import { evaluate, display, hasOperator, press } from '../../lib/calc';
@@ -34,7 +33,6 @@ export default function Manual() {
   const [note, setNote] = useState(first && first.name !== first.category ? first.name : '');
   const [date, setDate] = useState(existing?.date ?? localIso());
   const categories = useAllCategories();
-  const [adding, setAdding] = useState(false);
   const [split, setSplit] = useState(false);
   const [accountId, setAccountId] = useState<string | undefined>(existing?.accountId);
   const [noteFocus, setNoteFocus] = useState(false);
@@ -111,15 +109,7 @@ export default function Manual() {
         </View>
       </ScrollView>
 
-      <Pressable
-        onPress={() => setAdding(true)}
-        accessibilityLabel="Tambah kategori"
-        style={({ pressed }) => ({ position: 'absolute', right: 16, bottom: 16, width: 56, height: 56, borderRadius: 28, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', elevation: 6, opacity: pressed ? 0.85 : 1 })}>
-        <Ionicons name="add" size={32} color="#fff" />
-      </Pressable>
       </View>
-
-      <AddCategorySheet visible={adding} onClose={() => setAdding(false)} onAdded={(name) => setCategory(name)} />
 
       {category ? (
         <View style={{ backgroundColor: C.keypadBg, padding: 8, paddingBottom: 14 }}>
