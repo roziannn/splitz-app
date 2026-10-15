@@ -4,20 +4,44 @@ import { uid } from './format';
 import { receiptTotal } from './report';
 import { Receipt } from './types';
 
-export type AccountType = 'bank' | 'ewallet' | 'tunai' | 'kredit';
+export type AccountType = 'bank' | 'ewallet' | 'tunai';
 
 export const ACCOUNT_TYPES: { key: AccountType; label: string; icon: 'business-outline' | 'phone-portrait-outline' | 'cash-outline' | 'card-outline' }[] = [
   { key: 'bank', label: 'Bank', icon: 'business-outline' },
   { key: 'ewallet', label: 'E-wallet', icon: 'phone-portrait-outline' },
   { key: 'tunai', label: 'Tunai', icon: 'cash-outline' },
-  { key: 'kredit', label: 'Kartu kredit', icon: 'card-outline' },
 ];
+
+export interface Provider {
+  key: string;
+  label: string;
+  type: 'bank' | 'ewallet';
+  bg: string; // warna latar logo
+  fg: string; // warna tulisan logo
+  mark: string; // tulisan pada logo
+}
+
+/** Pilihan bank dan e-wallet. Logo digambar sebagai lencana berwarna merek (bukan berkas logo resmi). */
+export const PROVIDERS: Provider[] = [
+  { key: 'bca', label: 'BCA', type: 'bank', bg: '#0060AF', fg: '#FFFFFF', mark: 'BCA' },
+  { key: 'mandiri', label: 'Mandiri', type: 'bank', bg: '#003D79', fg: '#FCB017', mark: 'mandiri' },
+  { key: 'permata', label: 'Permata', type: 'bank', bg: '#0B8F4D', fg: '#FFFFFF', mark: 'permata' },
+  { key: 'nobu', label: 'Nobu', type: 'bank', bg: '#B71C1C', fg: '#FFFFFF', mark: 'nobu' },
+  { key: 'jago', label: 'Jago', type: 'bank', bg: '#FFC82C', fg: '#1F2937', mark: 'jago' },
+  { key: 'seabank', label: 'SeaBank', type: 'bank', bg: '#F26B21', fg: '#FFFFFF', mark: 'SeaBank' },
+  { key: 'shopeepay', label: 'ShopeePay', type: 'ewallet', bg: '#EE4D2D', fg: '#FFFFFF', mark: 'ShopeePay' },
+  { key: 'gopay', label: 'GoPay', type: 'ewallet', bg: '#00AED6', fg: '#FFFFFF', mark: 'gopay' },
+  { key: 'ovo', label: 'OVO', type: 'ewallet', bg: '#4C3494', fg: '#FFFFFF', mark: 'OVO' },
+];
+
+export const providerInfo = (key?: string) => PROVIDERS.find((p) => p.key === key);
 
 export interface Account {
   id: string;
   name: string;
   type: AccountType;
   color: string;
+  provider?: string; // kunci dari PROVIDERS; kosong = bank/e-wallet lain atau tunai
   initial: number; // saldo awal; saldo sekarang = saldo awal - pengeluaran yang dicatat dari rekening ini
 }
 
@@ -33,7 +57,8 @@ const valid = (a: any): a is Account => a && typeof a.id === 'string' && typeof 
 AsyncStorage.getItem(KEY)
   .then((raw) => {
     if (!raw) return;
-    const saved = (JSON.parse(raw) as unknown[]).filter(valid);
+    // Jenis "kredit" sudah dihapus; rekening lama dengan jenis itu dianggap bank.
+    const saved = (JSON.parse(raw) as unknown[]).filter(valid).map((a) => ((a.type as string) === 'kredit' ? { ...a, type: 'bank' as const } : a));
     accounts = [...saved, ...accounts.filter((a) => !saved.some((s) => s.id === a.id))];
     emit();
   })
@@ -72,3 +97,12 @@ export const spentFrom = (id: string, receipts: Receipt[]) => receipts.reduce((s
 export const balanceOf = (a: Account, receipts: Receipt[]) => a.initial - spentFrom(a.id, receipts);
 
 export const typeInfo = (t: AccountType) => ACCOUNT_TYPES.find((x) => x.key === t) ?? ACCOUNT_TYPES[0];
+
+/** Warna tulisan yang terbaca di atas warna latar tertentu: gelap untuk latar terang, putih untuk latar gelap. */
+export function readableOn(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return '#FFFFFF';
+  const n = parseInt(m[1], 16);
+  const lum = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  return lum > 0.62 ? '#111827' : '#FFFFFF';
+}
