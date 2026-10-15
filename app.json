@@ -2,12 +2,15 @@
   "expo": {
     "name": "Splitz",
     "slug": "splitz-app",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "scheme": "splitz",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
+      "image": "./assets/brand/logo.png",
+      "imageWidth": 200,
+      "resizeMode": "contain",
       "backgroundColor": "#0f766e"
     },
     "android": {
@@ -16,7 +19,11 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.REQUEST_INSTALL_PACKAGES"
-      ]
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/brand/adaptive-foreground.png",
+        "backgroundColor": "#0f766e"
+      }
     },
     "plugins": [
       "expo-router",
@@ -57,6 +64,10 @@
         "expo-channel-name": "production"
       },
       "checkAutomatically": "NEVER"
+    },
+    "icon": "./assets/brand/icon.png",
+    "web": {
+      "favicon": "./assets/brand/favicon.png"
     }
   }
 }

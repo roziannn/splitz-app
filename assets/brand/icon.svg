@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#0f766e"/>
+  <g id="art">
+    <!-- bayangan -->
+    <ellipse cx="512" cy="860" rx="270" ry="34" fill="#000" opacity=".18"/>
+    <!-- sayap -->
+    <ellipse cx="262" cy="560" rx="70" ry="150" fill="#1e293b" transform="rotate(18 262 560)"/>
+    <ellipse cx="762" cy="560" rx="70" ry="150" fill="#1e293b" transform="rotate(-18 762 560)"/>
+    <!-- badan -->
+    <ellipse cx="512" cy="560" rx="250" ry="290" fill="#1e293b"/>
+    <ellipse cx="512" cy="620" rx="175" ry="220" fill="#f8fafc"/>
+    <!-- kaki -->
+    <ellipse cx="400" cy="845" rx="75" ry="30" fill="#f59e0b"/>
+    <ellipse cx="624" cy="845" rx="75" ry="30" fill="#f59e0b"/>
+    <!-- slot koin di kepala -->
+    <rect x="422" y="262" width="180" height="26" rx="13" fill="#0b1220"/>
+    <!-- mata -->
+    <circle cx="430" cy="395" r="46" fill="#fff"/>
+    <circle cx="594" cy="395" r="46" fill="#fff"/>
+    <circle cx="436" cy="400" r="22" fill="#0b1220"/>
+    <circle cx="588" cy="400" r="22" fill="#0b1220"/>
+    <circle cx="444" cy="391" r="7" fill="#fff"/>
+    <circle cx="596" cy="391" r="7" fill="#fff"/>
+    <!-- pipi -->
+    <ellipse cx="368" cy="455" rx="30" ry="18" fill="#fb7185" opacity=".6"/>
+    <ellipse cx="656" cy="455" rx="30" ry="18" fill="#fb7185" opacity=".6"/>
+    <!-- paruh -->
+    <path d="M512 410 L462 462 Q512 500 562 462 Z" fill="#f59e0b"/>
+    <!-- koin jatuh ke slot -->
+    <g>
+      <circle cx="512" cy="168" r="82" fill="#fbbf24"/>
+      <circle cx="512" cy="168" r="82" fill="none" stroke="#d97706" stroke-width="12"/>
+      <circle cx="512" cy="168" r="56" fill="none" stroke="#f59e0b" stroke-width="8"/>
+      <text x="512" y="196" font-family="DejaVu Sans, Arial, sans-serif" font-weight="700" font-size="80" text-anchor="middle" fill="#b45309">Rp</text>
+    </g>
+    <!-- koin di perut -->
+    <g>
+      <circle cx="512" cy="660" r="78" fill="#fbbf24"/>
+      <circle cx="512" cy="660" r="78" fill="none" stroke="#d97706" stroke-width="11"/>
+      <circle cx="512" cy="660" r="54" fill="none" stroke="#f59e0b" stroke-width="7"/>
+      <text x="512" y="688" font-family="DejaVu Sans, Arial, sans-serif" font-weight="700" font-size="76" text-anchor="middle" fill="#b45309">Rp</text>
+    </g>
+  </g>
+</svg>

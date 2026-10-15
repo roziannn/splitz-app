@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Image, Pressable, View } from 'react-native';
 import { Text } from './Text';
 import { BottomBar, Button } from './ui';
 import { animate } from '../lib/anim';
 import { useColors } from '../lib/themeContext';
 
-const SLIDES: { icon: keyof typeof Ionicons.glyphMap; title: string; body: string }[] = [
+const SLIDES: { icon?: keyof typeof Ionicons.glyphMap; logo?: boolean; title: string; body: string }[] = [
+  { logo: true, title: 'Selamat datang di Splitz', body: 'Catat pengeluaran, scan struk, dan bagi tagihan dengan mudah. Mari mulai.' },
   { icon: 'add-circle-outline', title: 'Catat dengan cepat', body: 'Buka tab Catat, lalu pilih cara mencatat: scan struk, input manual, atau bensin.' },
   { icon: 'scan-outline', title: 'Scan struk otomatis', body: 'Foto struknya. Item, harga, dan pajak terbaca di HP tanpa internet. Periksa hasilnya, lalu koreksi bila perlu.' },
   { icon: 'people-outline', title: 'Split bill', body: 'Bagi tagihan ke teman atau keluarga. Pajak dan service dibagi sesuai porsi, hasilnya bisa dibagikan lewat pesan.' },
@@ -32,9 +33,13 @@ export function Onboarding({ onDone, doneLabel = 'Mulai' }: { onDone: () => void
         ) : null}
       </View>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
-        <View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
-          <Ionicons name={s.icon} size={56} color={C.accent} />
-        </View>
+        {s.logo ? (
+          <Image source={require('../assets/brand/logo.png')} style={{ width: 180, height: 180 }} resizeMode="contain" />
+        ) : (
+          <View style={{ width: 112, height: 112, borderRadius: 56, backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name={s.icon!} size={56} color={C.accent} />
+          </View>
+        )}
         <Text style={{ fontSize: 22, fontWeight: '800', marginTop: 28, textAlign: 'center' }}>{s.title}</Text>
         <Text style={{ color: C.muted, fontSize: 15, lineHeight: 22, marginTop: 10, textAlign: 'center' }}>{s.body}</Text>
         <View style={{ flexDirection: 'row', gap: 8, marginTop: 32 }}>
