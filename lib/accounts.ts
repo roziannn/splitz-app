@@ -21,7 +21,7 @@ export interface Provider {
   mark: string; // tulisan pada logo
 }
 
-/** Pilihan bank dan e-wallet. Bank yang ada di BANK_LOGOS (lib/bankLogos.ts) tampil dengan logo SVG-nya; sisanya sebagai lencana berwarna merek. */
+/** Pilihan bank dan e-wallet. Bank di BANK_LOGOS (lib/bankLogos.ts) dan e-wallet di EWALLET_LOGOS (lib/ewalletLogos.ts) tampil dengan logo SVG-nya; sisanya sebagai lencana berwarna merek. */
 export const PROVIDERS: Provider[] = [
   { key: 'bca', label: 'BCA', type: 'bank', bg: '#0060AF', fg: '#FFFFFF', mark: 'BCA' },
   { key: 'mandiri', label: 'Mandiri', type: 'bank', bg: '#003D79', fg: '#FCB017', mark: 'mandiri' },
@@ -37,6 +37,11 @@ export const PROVIDERS: Provider[] = [
   { key: 'shopeepay', label: 'ShopeePay', type: 'ewallet', bg: '#EE4D2D', fg: '#FFFFFF', mark: 'ShopeePay' },
   { key: 'gopay', label: 'GoPay', type: 'ewallet', bg: '#00AED6', fg: '#FFFFFF', mark: 'gopay' },
   { key: 'ovo', label: 'OVO', type: 'ewallet', bg: '#4C3494', fg: '#FFFFFF', mark: 'OVO' },
+  { key: 'dana', label: 'DANA', type: 'ewallet', bg: '#118EEA', fg: '#FFFFFF', mark: 'DANA' },
+  { key: 'linkaja', label: 'LinkAja', type: 'ewallet', bg: '#E82529', fg: '#FFFFFF', mark: 'LinkAja' },
+  { key: 'paypal', label: 'PayPal', type: 'ewallet', bg: '#003087', fg: '#FFFFFF', mark: 'PayPal' },
+  { key: 'googlepay', label: 'Google Pay', type: 'ewallet', bg: '#FFFFFF', fg: '#3C4043', mark: 'G Pay' },
+  { key: 'emoney', label: 'Mandiri e-money', type: 'ewallet', bg: '#003D79', fg: '#FCB017', mark: 'e-money' },
 ];
 
 export const providerInfo = (key?: string) => PROVIDERS.find((p) => p.key === key);
