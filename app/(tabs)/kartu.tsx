@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { ProviderLogo } from '../../components/ProviderLogo';
+import { Button } from '../../components/ui';
 import { balanceOf, readableOn, typeInfo, useAccounts } from '../../lib/accounts';
 import { rupiah } from '../../lib/format';
 import { useStore } from '../../lib/store';
@@ -18,7 +19,7 @@ export default function Kartu() {
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 96 }}>
+      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
         {accounts.length ? (
           <View style={{ marginBottom: 16 }}>
             <Text style={{ color: C.muted, fontSize: 12 }}>Total saldo</Text>
@@ -52,17 +53,11 @@ export default function Kartu() {
           <View style={{ alignItems: 'center', paddingVertical: 48, paddingHorizontal: 24 }}>
             <Ionicons name="card-outline" size={64} color={C.muted} />
             <Text style={{ fontWeight: '700', fontSize: 16, marginTop: 12 }}>Belum ada rekening</Text>
-            <Text style={{ color: C.muted, textAlign: 'center', marginTop: 4 }}>Tambahkan rekening bank, e-wallet, atau tunai untuk melihat saldo dan catatan terakhirnya.</Text>
+            <Text style={{ color: C.muted, textAlign: 'center', marginTop: 4, marginBottom: 16 }}>Tambahkan rekening bank, e-wallet, atau tunai di Pengaturan untuk melihat saldo dan catatan terakhirnya.</Text>
+            <Button title="Tambah di Pengaturan" onPress={() => router.push('/pengaturan/rekening' as any)} />
           </View>
         ) : null}
       </ScrollView>
-
-      <Pressable
-        onPress={() => router.push('/rekening/form' as any)}
-        accessibilityLabel="Tambah rekening"
-        style={({ pressed }) => ({ position: 'absolute', right: 16, bottom: 16, width: 56, height: 56, borderRadius: 28, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', elevation: 6, opacity: pressed ? 0.85 : 1 })}>
-        <Ionicons name="add" size={32} color="#fff" />
-      </Pressable>
     </View>
   );
 }
