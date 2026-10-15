@@ -1,10 +1,10 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { FlatList, Pressable, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { BottomBar, Button } from '../../components/ui';
-import { balanceOf, spentFrom, typeInfo, useAccounts } from '../../lib/accounts';
+import { ProviderLogo } from '../../components/ProviderLogo';
+import { balanceOf, readableOn, spentFrom, typeInfo, useAccounts } from '../../lib/accounts';
 import { prettyDate, rupiah } from '../../lib/format';
 import { editHref } from '../../lib/routes';
 import { useStore } from '../../lib/store';
@@ -21,6 +21,7 @@ export default function DetailRekening() {
     [receipts, id],
   );
   if (!account) return <Text style={{ padding: 16 }}>Rekening tidak ditemukan.</Text>;
+  const fg = readableOn(account.color);
 
   return (
     <View style={{ flex: 1 }}>
@@ -31,13 +32,13 @@ export default function DetailRekening() {
         contentContainerStyle={{ padding: 16 }}
         ListHeaderComponent={
           <View style={{ backgroundColor: account.color, borderRadius: 18, padding: 18, marginBottom: 16 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Ionicons name={typeInfo(account.type).icon} size={20} color="#fff" />
-              <Text style={{ color: 'rgba(255,255,255,0.85)' }}>{typeInfo(account.type).label}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <ProviderLogo account={account} size={38} />
+              <Text style={{ color: fg, opacity: 0.85 }}>{typeInfo(account.type).label}</Text>
             </View>
-            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 14 }}>Saldo</Text>
-            <Text style={{ color: '#fff', fontSize: 30, fontWeight: '800' }}>{rupiah(balanceOf(account, receipts))}</Text>
-            <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, marginTop: 6 }}>
+            <Text style={{ color: fg, opacity: 0.85, fontSize: 12, marginTop: 14 }}>Saldo</Text>
+            <Text style={{ color: fg, fontSize: 30, fontWeight: '800' }}>{rupiah(balanceOf(account, receipts))}</Text>
+            <Text style={{ color: fg, opacity: 0.85, fontSize: 12, marginTop: 6 }}>
               Saldo awal {rupiah(account.initial)} · terpakai {rupiah(spentFrom(account.id, receipts))}
             </Text>
           </View>
