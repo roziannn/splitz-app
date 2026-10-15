@@ -40,4 +40,5 @@ export interface Receipt {
   image?: string; // nama file foto struk di documentDirectory/receipts
   source?: Source; // kosong = data lama (dianggap hasil scan)
   fuel?: Fuel;
+  accountId?: string; // rekening/kartu asal pembayaran (opsional)
 }

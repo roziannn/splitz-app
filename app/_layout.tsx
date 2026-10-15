@@ -49,6 +49,8 @@ function Shell() {
         <Stack.Screen name="pengaturan/privasi" options={{ title: 'Kebijakan Privasi' }} />
         <Stack.Screen name="pengaturan/pembaruan" options={{ title: 'Pembaruan Aplikasi' }} />
         <Stack.Screen name="pengaturan/tentang" options={{ title: 'Tentang Scan Struk' }} />
+        <Stack.Screen name="rekening/form" options={{ title: 'Rekening' }} />
+        <Stack.Screen name="rekening/[id]" options={{ title: 'Rekening' }} />
         <Stack.Screen name="tutorial" options={{ title: 'Panduan' }} />
         <Stack.Screen name="tutup-buku" options={{ title: 'Tutup Buku' }} />
         <Stack.Screen name="receipt/[id]" options={{ title: 'Detail Struk' }} />
