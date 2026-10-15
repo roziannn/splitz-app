@@ -27,11 +27,13 @@ interface Props {
   value: string; // '' = kosong
   onChange: (iso: string) => void;
   placeholder?: string;
+  /** Tanpa label di atas dan tanpa ikon kalender; hanya teks tanggal atau placeholder. */
+  compact?: boolean;
   /** Ganti kolom bawaan dengan tombol sendiri; tetap membuka kalender yang sama. */
   trigger?: (open: () => void) => React.ReactNode;
 }
 
-export function DateField({ label: title, value, onChange, placeholder = 'Pilih tanggal', trigger }: Props) {
+export function DateField({ label: title, value, onChange, placeholder = 'Pilih tanggal', compact, trigger }: Props) {
   const C = useColors();
   const s = useStyles(styles);
   const [open, setOpen] = useState(false);
@@ -62,15 +64,15 @@ export function DateField({ label: title, value, onChange, placeholder = 'Pilih 
   const todayIso = localIso();
 
   return (
-    <View style={trigger ? undefined : { marginBottom: 10 }}>
+    <View style={trigger ? undefined : { marginBottom: compact ? 0 : 10 }}>
       {trigger ? (
         trigger(show)
       ) : (
         <>
-          <Text style={s.label}>{title}</Text>
+          {compact ? null : <Text style={s.label}>{title}</Text>}
           <Pressable onPress={show} style={s.input}>
             <Text style={{ color: value ? C.text : C.muted }}>{value ? label(value) : placeholder}</Text>
-            <Text style={{ color: C.muted }}>📅</Text>
+            {compact ? null : <Text style={{ color: C.muted }}>📅</Text>}
           </Pressable>
         </>
       )}
