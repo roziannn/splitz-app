@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
+import { AccountPicker } from '../../components/AccountPicker';
 import { ClosedNotice } from '../../components/ClosedNotice';
 import { DateField } from '../../components/DateField';
 import { MoneyField } from '../../components/MoneyField';
@@ -28,6 +29,7 @@ export default function Bensin() {
   const [priceNum, setPrice] = useState(f?.pricePerLiter ?? 0);
   const [totalNum, setTotal] = useState(existing?.total ?? 0);
   const [odoNum, setOdo] = useState(f?.odometer ?? 0);
+  const [accountId, setAccountId] = useState<string | undefined>(existing?.accountId);
 
   const litersNum = priceNum > 0 && totalNum > 0 ? Math.round((totalNum / priceNum) * 100) / 100 : 0; // otomatis, tidak diketik
   const prev = odoNum > 0 ? previousFill(receipts, date, existing?.id) : undefined;
@@ -48,6 +50,7 @@ export default function Bensin() {
       people: [],
       createdAt: existing?.createdAt ?? Date.now(),
       image: existing?.image,
+      accountId,
       source: 'bensin',
       fuel: { type: name, liters: litersNum, pricePerLiter: priceNum, ...(odoNum > 0 ? { odometer: odoNum } : {}) },
     };
@@ -62,6 +65,7 @@ export default function Bensin() {
       <Card>
         <DateField label="Tanggal" value={date} onChange={(v) => v && setDate(v)} />
         <ClosedNotice date={date} />
+        <AccountPicker value={accountId} onChange={setAccountId} />
         <Field label="SPBU" value={station} onChangeText={setStation} placeholder="mis. Pertamina Sudirman" />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {STATIONS.map((s) => (

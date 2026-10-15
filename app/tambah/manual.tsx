@@ -3,6 +3,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Keyboard, Pressable, ScrollView, Switch, TextInput, View } from 'react-native';
 import { Text } from '../../components/Text';
+import { AccountPicker } from '../../components/AccountPicker';
 import { AddCategorySheet } from '../../components/AddCategorySheet';
 import { ClosedNotice } from '../../components/ClosedNotice';
 import { DateField } from '../../components/DateField';
@@ -35,6 +36,7 @@ export default function Manual() {
   const categories = useAllCategories();
   const [adding, setAdding] = useState(false);
   const [split, setSplit] = useState(false);
+  const [accountId, setAccountId] = useState<string | undefined>(existing?.accountId);
   const [noteFocus, setNoteFocus] = useState(false);
 
   // Tinggi papan ketik yang menutupi layar ini: naikkan isi supaya kolom catatan tetap terlihat.
@@ -62,6 +64,7 @@ export default function Manual() {
       date,
       items: [{ id: first?.id ?? uid(), name: note.trim() || category, qty: 1, price: amount, category, assignedTo: first?.assignedTo ?? [] }],
       total: amount,
+      accountId,
       source: 'manual',
     });
     toast.success(existing ? 'Perubahan disimpan' : 'Pengeluaran tersimpan');
@@ -129,6 +132,9 @@ export default function Manual() {
           <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: C.inputBg, borderRadius: 8, paddingHorizontal: 12, marginBottom: 6 }}>
             <Text style={{ color: C.muted }}>Catatan :</Text>
             <TextInput value={note} onChangeText={setNote} returnKeyType="done" placeholder="Masukkan catatan..." placeholderTextColor={C.placeholder} style={{ flex: 1, paddingVertical: 12, paddingHorizontal: 8, color: C.text }} />
+          </View>
+          <View style={{ paddingHorizontal: 6 }}>
+            <AccountPicker value={accountId} onChange={setAccountId} />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 6, marginBottom: 6 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
