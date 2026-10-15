@@ -231,10 +231,10 @@ export default function History() {
         <View style={{ marginBottom: 8 }}>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <View style={{ flex: 1 }}>
-              <DateField label="Dari" value={from} onChange={edit(setFrom)} placeholder="Pilih tanggal" />
+              <DateField compact label="Dari" value={from} onChange={edit(setFrom)} placeholder="Dari tanggal" />
             </View>
             <View style={{ flex: 1 }}>
-              <DateField label="Sampai" value={to} onChange={edit(setTo)} placeholder="Pilih tanggal" />
+              <DateField compact label="Sampai" value={to} onChange={edit(setTo)} placeholder="Sampai tanggal" />
             </View>
           </View>
         </View>
