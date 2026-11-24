@@ -48,7 +48,9 @@
           "microphonePermission": false
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-background-task",
+      "expo-notifications"
     ],
     "runtimeVersion": {
       "policy": "appVersion"

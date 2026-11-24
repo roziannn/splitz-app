@@ -6,7 +6,7 @@ export const parseDec = (s: string) => Number(String(s).replace(',', '.').replac
 /** Liter tanpa nol di belakang: 12.50 -> "12,5". */
 export const fmtLiters = (n: number) => (Math.round(n * 100) / 100).toString().replace('.', ',');
 
-export const FUEL_TYPES = ['Pertalite', 'Pertamax', 'Pertamax Turbo', 'Dexlite', 'Solar'];
+export const FUEL_TYPES = ['Pertalite', 'Pertamax', 'Dexlite', 'Solar'];
 export const STATIONS = ['Pertamina', 'Shell', 'BP', 'Vivo'];
 
 /** Catatan bensin sebelum tanggal ini yang punya odometer (paling baru). */

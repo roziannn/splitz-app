@@ -2,10 +2,28 @@ import Constants from 'expo-constants';
 import * as Updates from 'expo-updates';
 import * as IntentLauncher from 'expo-intent-launcher';
 import * as FileSystem from 'expo-file-system/legacy';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const REPO = 'roziannn/splitz-app';
+const VERSION_KEY = 'splitz.update.lastVersion.v1';
+const OTA_NOTICE_KEY = 'splitz.update.otaNotice.v1';
 
 export const currentVersion = () => Constants.expoConfig?.version ?? '0.0.0';
+
+/** Dipanggil saat aplikasi mulai untuk menampilkan pemberitahuan update yang baru selesai dipasang. */
+export async function consumeUpdateSuccessNotice(): Promise<string | null> {
+  const version = currentVersion();
+  const [previous, otaNotice] = await Promise.all([
+    AsyncStorage.getItem(VERSION_KEY),
+    AsyncStorage.getItem(OTA_NOTICE_KEY),
+  ]);
+  await AsyncStorage.setItem(VERSION_KEY, version);
+  if (otaNotice === '1') {
+    await AsyncStorage.removeItem(OTA_NOTICE_KEY);
+    return 'Pembaruan aplikasi berhasil dipasang.';
+  }
+  return previous && isNewer(version, previous) ? `Aplikasi berhasil diperbarui ke versi ${version}.` : null;
+}
 
 const parts = (v: string) => v.replace(/^v/, '').split('.').map((n) => parseInt(n, 10) || 0);
 
@@ -51,6 +69,7 @@ export async function applyOtaUpdate(): Promise<boolean> {
   const check = await Updates.checkForUpdateAsync();
   if (!check.isAvailable) return false;
   await Updates.fetchUpdateAsync();
+  await AsyncStorage.setItem(OTA_NOTICE_KEY, '1');
   await Updates.reloadAsync();
   return true;
 }

@@ -9,13 +9,13 @@ import { DateField } from '../../components/DateField';
 import { evaluate, display, hasOperator, press } from '../../lib/calc';
 import { isCustom, removeCategory, useAllCategories } from '../../lib/customCategories';
 import { localIso } from '../../lib/dates';
-import { prettyDate, rupiah, uid } from '../../lib/format';
+import { rupiah, uid } from '../../lib/format';
 import { useStore } from '../../lib/store';
 import { useColors } from '../../lib/themeContext';
 import { toast } from '../../lib/toast';
 
 const ROWS = [
-  ['7', '8', '9', 'DATE'],
+  ['7', '8', '9'],
   ['4', '5', '6', '+'],
   ['1', '2', '3', ',', '-'],
   ['0', '000', '⌫', 'OK'],
@@ -84,6 +84,7 @@ export default function Manual() {
       <Stack.Screen options={{ title: existing ? 'Ubah Pengeluaran' : 'Input Manual' }} />
       <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ padding: 12, paddingBottom: 96 }}>
+        <DateField label="Tanggal pengeluaran" value={date} onChange={(v) => v && setDate(v)} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
           {categories.map((c) => {
             const active = category === c.name;
@@ -136,18 +137,6 @@ export default function Manual() {
           {noteFocus ? null : ROWS.map((row, ri) => (
             <View key={ri} style={{ flexDirection: 'row' }}>
               {row.map((k) => {
-                if (k === 'DATE') {
-                  return (
-                    <View key={k} style={{ flex: 1 }}>
-                      <DateField label="Tanggal" value={date} onChange={(v) => v && setDate(v)} trigger={(open) => (
-                        <Pressable onPress={open} style={keyBox}>
-                          <Ionicons name="calendar-outline" size={18} color={C.accent} />
-                          <Text style={{ color: C.accent, fontSize: 12, fontWeight: '600' }}>{date === localIso() ? 'Hari ini' : prettyDate(date)}</Text>
-                        </Pressable>
-                      )} />
-                    </View>
-                  );
-                }
                 const ok = k === 'OK';
                 return (
                   <Pressable key={k} onPress={() => onKey(k)} disabled={ok && !calculating && amount <= 0} style={[keyBox, ok && { backgroundColor: amount > 0 || calculating ? C.primary : C.keyDisabled }]}>

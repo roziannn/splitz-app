@@ -1,6 +1,6 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Alert, Pressable, ScrollView, View } from 'react-native';
+import { Alert, Pressable, ScrollView, Switch, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { useAccounts } from '../../lib/accounts';
 import { useAllCategories } from '../../lib/customCategories';
@@ -8,6 +8,8 @@ import { useFamily } from '../../lib/family';
 import { useColors, useThemeMode } from '../../lib/themeContext';
 import { currentVersion } from '../../lib/update';
 import { useAuth } from '../../lib/auth';
+import { checkExpenseReminder, disableExpenseReminder, enableExpenseReminder, ensureExpenseReminderRegistered, isExpenseReminderEnabled } from '../../lib/expenseReminder';
+import { useEffect, useState } from 'react';
 
 type Icon = keyof typeof Ionicons.glyphMap;
 interface Item {
@@ -29,6 +31,34 @@ export default function Settings() {
   const categories = useAllCategories();
   const accounts = useAccounts();
   const { user, logout } = useAuth();
+  const [reminderEnabled, setReminderEnabled] = useState(false);
+  const [reminderBusy, setReminderBusy] = useState(false);
+
+  useEffect(() => {
+    isExpenseReminderEnabled().then(setReminderEnabled).catch(() => {});
+    ensureExpenseReminderRegistered().then(() => checkExpenseReminder()).catch(() => {});
+  }, []);
+
+  const toggleReminder = async (enabled: boolean) => {
+    setReminderBusy(true);
+    try {
+      if (enabled) {
+        const granted = await enableExpenseReminder();
+        if (!granted) {
+          Alert.alert('Izin notifikasi diperlukan', 'Izinkan notifikasi Splitz di pengaturan perangkat untuk menerima pengingat.');
+          return;
+        }
+        setReminderEnabled(true);
+      } else {
+        await disableExpenseReminder();
+        setReminderEnabled(false);
+      }
+    } catch (error: any) {
+      Alert.alert('Pengingat belum bisa diaktifkan', error?.message || 'Coba lagi setelah membuka ulang aplikasi.');
+    } finally {
+      setReminderBusy(false);
+    }
+  };
 
   const groups: Item[][] = [
     [
@@ -57,6 +87,14 @@ export default function Settings() {
         <Pressable onPress={() => Alert.alert('Keluar dari akun?', 'Perubahan yang belum tersinkron tetap di perangkat dan akan dicoba lagi saat Anda masuk ke akun ini. Jika masuk ke akun lain, data tersebut tidak akan dikirim ke akun baru.', [
           { text: 'Batal', style: 'cancel' }, { text: 'Keluar', style: 'destructive', onPress: () => { void logout(); } },
         ])}><Text style={{ color: C.danger, fontWeight: '700' }}>Keluar</Text></Pressable>
+      </View>
+      <View style={{ backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border, marginBottom: 12, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Ionicons name="notifications-outline" size={24} color={C.accent} />
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontWeight: '700' }}>Pengingat pengeluaran</Text>
+          <Text style={{ color: C.muted, fontSize: 12, marginTop: 2 }}>Cek tiap 6 jam jika belum ada catatan hari ini</Text>
+        </View>
+        <Switch value={reminderEnabled} onValueChange={toggleReminder} disabled={reminderBusy} trackColor={{ true: C.primary, false: C.border }} thumbColor="#fff" />
       </View>
       {groups.map((items, g) => (
         <View key={g} style={{ backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border, marginBottom: 12, overflow: 'hidden' }}>

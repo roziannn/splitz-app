@@ -5,10 +5,11 @@ Splitz menyimpan data tetap di perangkat dan mengantre perubahan struk secara lo
 ## Menyiapkan backend
 
 1. Buat database Neon dan salin connection string.
-2. Impor repository ke Vercel dengan **Root Directory** `backend`.
-3. Tambahkan `DATABASE_URL` dan `AUTH_SECRET` pada Environment Variables Vercel. Buat secret acak kuat, misalnya dengan `openssl rand -base64 48`.
-4. Deploy. Tabel akun dan struk dibuat otomatis saat endpoint pertama kali dipanggil.
-5. Atur `EXPO_PUBLIC_API_URL` ke URL deployment Vercel, lalu build ulang APK. Jangan gunakan alamat localhost pada APK yang dipasang di HP.
+2. Buka Neon SQL Editor dan jalankan [`backend/migrations/001_initial_schema.sql`](../backend/migrations/001_initial_schema.sql) dari repository.
+3. Impor repository ke Vercel dengan **Root Directory** `backend`.
+4. Tambahkan `DATABASE_URL` dan `AUTH_SECRET` pada Environment Variables Vercel. Buat secret acak kuat, misalnya dengan `openssl rand -base64 48`.
+5. Deploy. API juga memastikan tabel akun dan struk tersedia saat endpoint pertama kali dipanggil.
+6. Atur `EXPO_PUBLIC_API_URL` ke URL deployment Vercel, lalu build ulang APK. Jangan gunakan alamat localhost pada APK yang dipasang di HP.
 
 Endpoint register dan login mengembalikan bearer token bertanda tangan yang berlaku 30 hari. Password disimpan sebagai hash scrypt. Endpoint sync melakukan upsert berdasarkan akun dan ID struk serta mempertahankan perubahan offline dalam antrean lokal.
 

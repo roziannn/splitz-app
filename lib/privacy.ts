@@ -18,6 +18,7 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
       'Catatan pengeluaran: nama toko, tanggal, item, harga, pajak, kategori, dan hasil split bill.',
       'Nama anggota keluarga dan peserta split yang Anda ketik sendiri.',
       'Pengaturan aplikasi (tema, mode, kategori buatan sendiri) dan ringkasan tutup buku.',
+      'Pilihan pengingat pengeluaran disimpan lokal di perangkat.',
       'Foto struk yang Anda ambil atau pilih, disimpan dalam bentuk terkompres.',
       'Catatan struk disimpan di HP dan disinkronkan ke akun Anda saat online. Foto struk tidak diunggah.',
       'Email dan hash kata sandi digunakan untuk membuat dan mengamankan akun. Kata sandi asli tidak disimpan.',
@@ -45,6 +46,13 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
     body: [
       'Saat Anda menekan "Perbarui sekarang", aplikasi memeriksa dan mengunduh pembaruan kode lewat layanan Expo Updates.',
       'Permintaan itu memuat informasi teknis standar seperti versi aplikasi, platform, dan alamat IP. Catatan pengeluaran Anda tidak ikut terkirim.',
+    ],
+  },
+  {
+    title: 'Pengingat pengeluaran',
+    body: [
+      'Jika diaktifkan, aplikasi memeriksa catatan di perangkat dan menampilkan notifikasi lokal bila belum ada pengeluaran hari ini.',
+      'Pemeriksaan berjalan di perangkat. Jadwal background dapat ditunda oleh sistem operasi dan tidak dijamin tepat setiap enam jam.',
     ],
   },
   {

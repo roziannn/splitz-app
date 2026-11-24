@@ -44,8 +44,6 @@ export default function Split() {
         i.id !== iid ? i : { ...i, assignedTo: i.assignedTo.includes(pid) ? i.assignedTo.filter((x) => x !== pid) : [...i.assignedTo, pid] },
       ),
     });
-  const everyone = (iid: string) =>
-    upsert({ ...r, items: r.items.map((i) => (i.id === iid ? { ...i, assignedTo: r.people.map((p) => p.id) } : i)) });
   const splitEvenly = () => upsert({ ...r, items: r.items.map((i) => ({ ...i, assignedTo: r.people.map((p) => p.id) })) });
 
   const { shares, unassigned } = computeSplit(r);
@@ -141,7 +139,6 @@ export default function Split() {
                   {r.people.map((p) => (
                     <Chip key={p.id} label={p.name} active={i.assignedTo.includes(p.id)} onPress={() => toggle(i.id, p.id)} />
                   ))}
-                  <Chip label="Semua" color={C.muted} onPress={() => everyone(i.id)} />
                 </View>
               </View>
             ))}

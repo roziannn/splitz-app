@@ -1,8 +1,8 @@
 import '../lib/crashGuard'; // harus paling atas agar kesalahan saat memuat modul lain ikut tertangkap
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { AppState, View } from 'react-native';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider as NavThemeProvider, type ErrorBoundaryProps } from 'expo-router';
-import { Pressable, ScrollView, Text as RNText } from 'react-native';
+import { Alert, Pressable, ScrollView, Text as RNText } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Onboarding } from '../components/Onboarding';
 import { markOnboarded, useOnboarded } from '../lib/onboarding';
@@ -12,6 +12,8 @@ import { ToastHost } from '../lib/toast';
 import { AuthProvider, useAuth } from '../lib/auth';
 import { AuthScreen } from '../components/AuthScreen';
 import { SyncManager } from '../components/SyncManager';
+import { consumeUpdateSuccessNotice } from '../lib/update';
+import { checkExpenseReminder, ensureExpenseReminderRegistered } from '../lib/expenseReminder';
 
 function Shell() {
   const { user, ready: authReady } = useAuth();
@@ -22,6 +24,21 @@ function Shell() {
   useEffect(() => {
     if (onboarded === false && ready && receipts.length > 0) markOnboarded();
   }, [onboarded, ready, receipts.length]);
+  useEffect(() => {
+    if (!authReady) return;
+    let active = true;
+    consumeUpdateSuccessNotice()
+      .then((message) => { if (active && message) Alert.alert('Pembaruan berhasil', message); })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [authReady]);
+  useEffect(() => {
+    const check = () => { checkExpenseReminder().catch(() => {}); };
+    ensureExpenseReminderRegistered().then(check).catch(() => {});
+    const appState = AppState.addEventListener('change', (state) => { if (state === 'active') check(); });
+    const interval = setInterval(check, 6 * 60 * 60 * 1000);
+    return () => { appState.remove(); clearInterval(interval); };
+  }, []);
   // Warna jendela di belakang layar ikut tema, supaya tidak ada kilatan putih saat transisi.
   useEffect(() => {
     try {
