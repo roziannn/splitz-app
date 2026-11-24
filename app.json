@@ -22,6 +22,7 @@
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/brand/adaptive-foreground.png",
+        "monochromeImage": "./assets/brand/monochrome-icon.png",
         "backgroundColor": "#0f766e"
       }
     },
@@ -50,7 +51,23 @@
       ],
       "expo-secure-store",
       "expo-background-task",
-      "expo-notifications"
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/brand/notification-icon.png",
+          "color": "#0f766e",
+          "defaultChannel": "expense-reminders"
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/brand/logo.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0f766e"
+        }
+      ]
     ],
     "runtimeVersion": {
       "policy": "appVersion"
