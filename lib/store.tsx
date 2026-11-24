@@ -3,6 +3,7 @@ import { AppState } from 'react-native';
 import { deleteReceiptImage } from './images';
 import { loadReceipts, saveReceipts } from './storage';
 import { Receipt } from './types';
+import { enqueue } from './sync';
 
 interface Ctx {
   receipts: Receipt[];
@@ -12,6 +13,7 @@ interface Ctx {
   get: (id: string) => Receipt | undefined;
   /** Tunggu sampai semua perubahan benar-benar tertulis ke penyimpanan. */
   flush: () => Promise<void>;
+  replaceAll: (r: Receipt[]) => Promise<void>;
 }
 
 const StoreCtx = createContext<Ctx>(null as any);
@@ -73,6 +75,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     await writeNow();
   }, [writeNow]);
 
+  const replaceAll = useCallback(async (next: Receipt[]) => {
+    latest.current = next;
+    setReceipts(next);
+    await writeNow();
+  }, [writeNow]);
+
   // Pastikan perubahan yang tertunda tertulis saat aplikasi ke latar belakang atau ditutup.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (st) => {
@@ -86,18 +94,23 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   // Fungsi stabil (tidak berubah antar render) agar komponen daftar yang di-memo tidak digambar ulang tanpa perlu.
   const upsert = useCallback(
-    (r: Receipt) => commit((prev) => (prev.some((x) => x.id === r.id) ? prev.map((x) => (x.id === r.id ? r : x)) : [r, ...prev])),
+    (r: Receipt) => {
+      const updatedAt = Date.now();
+      enqueue({ id: r.id, receipt: r, deleted: false, updatedAt }).catch(() => {});
+      commit((prev) => (prev.some((x) => x.id === r.id) ? prev.map((x) => (x.id === r.id ? r : x)) : [r, ...prev]));
+    },
     [commit],
   );
   const remove = useCallback(
     (id: string) => {
       deleteReceiptImage(latest.current.find((x) => x.id === id)?.image);
+      enqueue({ id, deleted: true, updatedAt: Date.now() }).catch(() => {});
       commit((prev) => prev.filter((x) => x.id !== id));
     },
     [commit],
   );
   const get = useCallback((id: string) => latest.current.find((r) => r.id === id), []);
 
-  const value = useMemo<Ctx>(() => ({ receipts, ready, upsert, remove, get, flush }), [receipts, ready, upsert, remove, get, flush]);
+  const value = useMemo<Ctx>(() => ({ receipts, ready, upsert, remove, get, flush, replaceAll }), [receipts, ready, upsert, remove, get, flush, replaceAll]);
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
 }

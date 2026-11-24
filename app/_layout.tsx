@@ -9,8 +9,12 @@ import { markOnboarded, useOnboarded } from '../lib/onboarding';
 import { StoreProvider, useStore } from '../lib/store';
 import { ThemeProvider, useThemeMode } from '../lib/themeContext';
 import { ToastHost } from '../lib/toast';
+import { AuthProvider, useAuth } from '../lib/auth';
+import { AuthScreen } from '../components/AuthScreen';
+import { SyncManager } from '../components/SyncManager';
 
 function Shell() {
+  const { user, ready: authReady } = useAuth();
   const { scheme, colors: C } = useThemeMode();
   const onboarded = useOnboarded();
   const { ready, receipts } = useStore();
@@ -57,7 +61,10 @@ function Shell() {
         <Stack.Screen name="receipt/[id]" options={{ title: 'Detail Struk' }} />
         <Stack.Screen name="receipt/split/[id]" options={{ title: 'Split Bill' }} />
       </Stack>
-      {onboarded === false && ready && receipts.length === 0 ? (
+      {!authReady ? <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, backgroundColor: C.bg }} /> : !user ? (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100 }}><AuthScreen /></View>
+      ) : <SyncManager />}
+      {user && onboarded === false && ready && receipts.length === 0 ? (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50 }}>
           <Onboarding onDone={markOnboarded} />
         </View>
@@ -71,7 +78,7 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <StoreProvider>
-        <Shell />
+        <AuthProvider><Shell /></AuthProvider>
       </StoreProvider>
     </ThemeProvider>
   );

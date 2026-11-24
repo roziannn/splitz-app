@@ -1,4 +1,4 @@
-export const PRIVACY_UPDATED = '14 Oktober 2026';
+export const PRIVACY_UPDATED = '24 November 2026';
 
 /** Isi alamat email pengembang agar tampil di kebijakan; kosong = baris kontak tidak ditampilkan di aplikasi. */
 export const PRIVACY_CONTACT = '';
@@ -9,7 +9,7 @@ export interface PrivacySection {
 }
 
 export const PRIVACY_INTRO =
-  'Splitz adalah aplikasi pencatat pengeluaran dan pembagi tagihan. Data Anda tersimpan di perangkat Anda sendiri. Kami tidak punya server untuk menampung data Anda, tidak ada akun, tidak ada iklan, dan tidak ada pelacak.';
+  'Splitz adalah aplikasi pencatat pengeluaran dan pembagi tagihan. Untuk memakai sinkronisasi antar perangkat, Anda dapat membuat akun. Data struk tetap tersimpan di perangkat dan disalin ke server Vercel dan database Neon yang dikonfigurasi oleh pengelola aplikasi. Tidak ada iklan atau pelacak.';
 
 export const PRIVACY_SECTIONS: PrivacySection[] = [
   {
@@ -19,14 +19,16 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
       'Nama anggota keluarga dan peserta split yang Anda ketik sendiri.',
       'Pengaturan aplikasi (tema, mode, kategori buatan sendiri) dan ringkasan tutup buku.',
       'Foto struk yang Anda ambil atau pilih, disimpan dalam bentuk terkompres.',
-      'Semua itu berada di penyimpanan privat aplikasi di HP Anda dan terhapus saat aplikasi dicopot atau datanya dibersihkan.',
+      'Catatan struk disimpan di HP dan disinkronkan ke akun Anda saat online. Foto struk tidak diunggah.',
+      'Email dan hash kata sandi digunakan untuk membuat dan mengamankan akun. Kata sandi asli tidak disimpan.',
+      'Pengaturan aplikasi lain tetap berada di HP dan tidak ikut disinkronkan.',
     ],
   },
   {
     title: 'Kamera dan foto',
     body: [
       'Izin kamera hanya dipakai saat Anda memotret struk.',
-      'Teks pada struk dibaca langsung di HP dengan Google ML Kit. Foto tidak diunggah ke mana pun.',
+      'Teks pada struk dibaca langsung di HP dengan Google ML Kit. Foto tidak diunggah ke server.',
       'Dari galeri, aplikasi hanya membaca foto yang Anda pilih.',
     ],
   },
@@ -47,25 +49,25 @@ export const PRIVACY_SECTIONS: PrivacySection[] = [
   },
   {
     title: 'Pihak ketiga',
-    body: ['Google ML Kit (membaca teks di perangkat) dan Expo (pembaruan aplikasi). Tidak ada layanan iklan atau analitik.'],
+    body: ['Google ML Kit (membaca teks di perangkat), Vercel (API), Neon (database), dan Expo (pembaruan aplikasi). Tidak ada layanan iklan atau analitik.'],
   },
   {
     title: 'Keamanan',
     body: [
-      'Data berada di penyimpanan privat aplikasi yang dilindungi sistem Android. Kami menyarankan memakai kunci layar di HP Anda.',
+      'Data lokal berada di penyimpanan privat aplikasi yang dilindungi sistem operasi. Token sesi disimpan menggunakan penyimpanan aman perangkat. Data akun dikirim melalui HTTPS; akses database hanya dilakukan oleh API server.',
       'File ekspor yang Anda simpan atau bagikan tidak terenkripsi; simpan di tempat yang aman.',
     ],
   },
   {
     title: 'Kendali Anda',
     body: [
-      'Anda bisa melihat, mengubah, dan menghapus semua catatan kapan saja di dalam aplikasi, dan mengekspornya ke Excel atau PDF.',
-      'Menghapus aplikasi atau membersihkan datanya menghapus seluruh data yang tersimpan.',
+      'Anda bisa melihat, mengubah, menghapus catatan di aplikasi, dan mengekspornya ke Excel atau PDF. Penghapusan akun dan salinan cloud perlu diminta melalui kontak pengelola.',
+      'Menghapus aplikasi atau membersihkan datanya menghapus salinan lokal, tetapi tidak menghapus data cloud.',
     ],
   },
   {
     title: 'Anak-anak',
-    body: ['Splitz tidak mengumpulkan data dari siapa pun, termasuk anak-anak.'],
+    body: ['Akun dibuat oleh pengguna. Jangan mendaftarkan akun untuk anak tanpa persetujuan wali.'],
   },
   {
     title: 'Perubahan kebijakan',

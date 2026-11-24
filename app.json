@@ -47,7 +47,8 @@
           "cameraPermission": "Splitz memerlukan kamera untuk memindai struk belanja.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "runtimeVersion": {
       "policy": "appVersion"

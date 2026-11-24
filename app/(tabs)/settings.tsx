@@ -1,12 +1,13 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { useAccounts } from '../../lib/accounts';
 import { useAllCategories } from '../../lib/customCategories';
 import { useFamily } from '../../lib/family';
 import { useColors, useThemeMode } from '../../lib/themeContext';
 import { currentVersion } from '../../lib/update';
+import { useAuth } from '../../lib/auth';
 
 type Icon = keyof typeof Ionicons.glyphMap;
 interface Item {
@@ -27,6 +28,7 @@ export default function Settings() {
   const family = useFamily();
   const categories = useAllCategories();
   const accounts = useAccounts();
+  const { user, logout } = useAuth();
 
   const groups: Item[][] = [
     [
@@ -49,6 +51,13 @@ export default function Settings() {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <View style={{ backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border, marginBottom: 12, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+        <Ionicons name="person-circle-outline" size={28} color={C.accent} />
+        <View style={{ flex: 1 }}><Text style={{ fontWeight: '700' }}>Akun</Text><Text style={{ color: C.muted, fontSize: 12 }}>{user?.email}</Text></View>
+        <Pressable onPress={() => Alert.alert('Keluar dari akun?', 'Perubahan yang belum tersinkron tetap di perangkat dan akan dicoba lagi saat Anda masuk ke akun ini. Jika masuk ke akun lain, data tersebut tidak akan dikirim ke akun baru.', [
+          { text: 'Batal', style: 'cancel' }, { text: 'Keluar', style: 'destructive', onPress: () => { void logout(); } },
+        ])}><Text style={{ color: C.danger, fontWeight: '700' }}>Keluar</Text></Pressable>
+      </View>
       {groups.map((items, g) => (
         <View key={g} style={{ backgroundColor: C.card, borderRadius: 16, borderWidth: 1, borderColor: C.border, marginBottom: 12, overflow: 'hidden' }}>
           {items.map((it, i) => (
