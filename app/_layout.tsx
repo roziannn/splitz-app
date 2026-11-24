@@ -50,11 +50,13 @@ function Shell() {
   const navTheme = { ...base, colors: { ...base.colors, background: C.bg, card: C.card, text: C.text, border: C.border, primary: C.accent } };
   return (
     <NavThemeProvider value={navTheme}>
-      <StatusBar style="light" />
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
       <Stack
         screenOptions={{
-          headerStyle: { backgroundColor: C.primary },
-          headerTintColor: '#fff',
+          headerStyle: { backgroundColor: C.card },
+          headerTintColor: C.text,
+          headerShadowVisible: false,
+          headerTitleStyle: { fontWeight: '700' },
           contentStyle: { backgroundColor: C.bg },
           animation: 'slide_from_right',
         }}>
@@ -104,10 +106,10 @@ export default function RootLayout() {
 /** Layar cadangan jika ada layar yang gagal digambar: tampilkan pesannya, bukan menutup aplikasi. */
 export function ErrorBoundary({ error, retry }: ErrorBoundaryProps) {
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, backgroundColor: '#0e1415' }}>
-      <RNText style={{ color: '#fff', fontSize: 18, fontWeight: '800', marginBottom: 8 }}>Terjadi kesalahan</RNText>
-      <RNText style={{ color: '#cbd5d5', marginBottom: 16 }}>{String(error?.message ?? error)}</RNText>
-      <Pressable onPress={retry} style={{ backgroundColor: '#0f766e', padding: 14, borderRadius: 12, alignItems: 'center' }}>
+    <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24, backgroundColor: '#f7f8fb' }}>
+      <RNText style={{ color: '#17372a', fontSize: 18, fontWeight: '800', marginBottom: 8 }}>Terjadi kesalahan</RNText>
+      <RNText style={{ color: '#71867a', marginBottom: 16 }}>{String(error?.message ?? error)}</RNText>
+      <Pressable onPress={retry} style={{ backgroundColor: '#13865c', padding: 14, borderRadius: 16, alignItems: 'center' }}>
         <RNText style={{ color: '#fff', fontWeight: '700' }}>Coba lagi</RNText>
       </Pressable>
     </ScrollView>

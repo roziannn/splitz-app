@@ -104,11 +104,11 @@ export default function Dashboard() {
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 32 }} stickyHeaderIndices={[0]}>
       <View style={{ backgroundColor: C.bg, paddingHorizontal: 16, paddingTop: 8 }}>
-      <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: C.border }}>
+      <View style={{ flexDirection: 'row', padding: 4, borderRadius: 16, backgroundColor: C.card, borderWidth: 1, borderColor: C.border, shadowColor: C.primary, shadowOffset: { width: 0, height: 3 }, shadowOpacity: C.dark ? 0 : 0.05, shadowRadius: 10, elevation: 1 }}>
         {RANGES.map((r) => {
           const active = range === r.key;
           return (
-            <Pressable key={r.key} onPress={() => setRange(r.key)} accessibilityRole="tab" accessibilityState={{ selected: active }} style={{ flex: 1, alignItems: 'center', paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: active ? C.primary : 'transparent', marginBottom: -1 }}>
+            <Pressable key={r.key} onPress={() => setRange(r.key)} accessibilityRole="tab" accessibilityState={{ selected: active }} style={{ flex: 1, alignItems: 'center', paddingVertical: 9, borderRadius: 12, backgroundColor: active ? C.primarySoft : 'transparent' }}>
               <Text style={{ fontSize: 13, fontWeight: active ? '700' : '500', color: active ? C.accent : C.muted }} numberOfLines={1}>{r.label}</Text>
             </Pressable>
           );
@@ -117,7 +117,7 @@ export default function Dashboard() {
       </View>
 
       <View style={{ padding: 16 }}>
-      <Card style={{ backgroundColor: C.primary, borderColor: C.primary }}>
+      <Card style={{ backgroundColor: C.primary, borderColor: C.primary, shadowColor: C.primary, shadowOffset: { width: 0, height: 9 }, shadowOpacity: 0.23, shadowRadius: 18, elevation: 5 }}>
         <Text style={{ color: '#ccfbf1' }}>Total pengeluaran · {meta.long}</Text>
         <Text style={{ color: '#fff', fontSize: 34, fontWeight: '800', marginVertical: 2 }}>{rupiah(rep.total)}</Text>
         {deltaText ? <Text style={{ color: '#ccfbf1', fontWeight: '600' }}>{deltaText}</Text> : null}

@@ -17,7 +17,7 @@ function CatatButton({ onPress, accessibilityState }: any) {
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel="Catat"
-        style={({ pressed }) => ({ marginTop: -18, width: 58, height: 58, borderRadius: 29, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', elevation: 6, borderWidth: 4, borderColor: C.bg, opacity: pressed ? 0.9 : 1 })}>
+        style={({ pressed }) => ({ marginTop: -18, width: 58, height: 58, borderRadius: 29, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', elevation: 7, shadowColor: C.primary, shadowOffset: { width: 0, height: 5 }, shadowOpacity: C.dark ? 0.1 : 0.24, shadowRadius: 12, borderWidth: 4, borderColor: C.bg, opacity: pressed ? 0.9 : 1 })}>
         <Ionicons name={selected ? 'close' : 'add'} size={32} color="#fff" />
       </Pressable>
     </View>
@@ -30,11 +30,13 @@ export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: C.primary },
-        headerTintColor: '#fff',
+        headerStyle: { backgroundColor: C.card },
+        headerTintColor: C.text,
+        headerShadowVisible: false,
+        headerTitleStyle: { fontWeight: '700' },
         tabBarActiveTintColor: C.accent,
         tabBarInactiveTintColor: C.muted,
-        tabBarStyle: { backgroundColor: C.card, borderTopColor: C.border },
+        tabBarStyle: { backgroundColor: C.card, borderTopColor: C.border, shadowColor: C.primary, shadowOffset: { width: 0, height: -4 }, shadowOpacity: C.dark ? 0 : 0.07, shadowRadius: 14, elevation: 10 },
         sceneStyle: { backgroundColor: C.bg },
         animation: 'none', // header tiap tab ikut berpindah; transisi fade membuatnya berkedip putih
       }}>
@@ -45,7 +47,7 @@ export default function TabsLayout() {
           tabBarIcon: icon('stats-chart'),
           headerRight: () => (
             <Pressable onPress={() => router.push('/tutorial')} hitSlop={10} accessibilityLabel="Panduan" style={{ paddingHorizontal: 16 }}>
-              <Ionicons name="help-circle-outline" size={26} color="#fff" />
+              <Ionicons name="help-circle-outline" size={26} color={C.accent} />
             </Pressable>
           ),
         }}
